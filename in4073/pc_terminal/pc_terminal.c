@@ -13,6 +13,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include "../message/message.h"
+#include "../message/crc.h"
 
 /*------------------------------------------------------------
  * console I/O
@@ -184,23 +185,25 @@ void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
 
 	// fill in message data members
 	message.message_type = END_BYTE;
-	message.crc = 0; // TODO make crc
-	
-	if(data_len > sizeof(message.data))
+
+	if (data_len > sizeof(message.data))
 		return;
 	
 	memcpy(&message.data, data, data_len);
 
+	message.crc = 0; 
+	message.crc = crcFast((unsigned char const*) message_ptr, sizeof(message));
+
+
 	rs232_putchar(START_BYTE);
 
 	// send data over uart
-	for(int i = 0; i < sizeof(standard_message_t); i++)
+	for (int i = 0; i < sizeof(standard_message_t); i++)
 	{
 		// check for special bytes, and add escaping where necessary
 		if(*(message_ptr) == START_BYTE ||
 			*(message_ptr) == END_BYTE ||
 			*(message_ptr) == ESCAPE )
-
 		{
 			rs232_putchar(ESCAPE);
 			rs232_putchar(*(message_ptr++) ^ 0x20);
@@ -229,6 +232,7 @@ int main(int argc, char **argv)
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
 
 	term_initio();
+	crcInit();
 	rs232_open();
 
 	term_puts("Type ^C to exit\n");
