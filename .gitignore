@@ -1,7 +1,7 @@
 # Compiler / components folders
 components/
 gcc-arm-none-eabi/
-# in4073/_build/
+in4073/_build/
 
 # Prerequisites
 *.d
