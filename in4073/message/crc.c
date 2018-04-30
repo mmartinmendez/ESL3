@@ -57,7 +57,7 @@ crc  crcTable[256];
  *
  *********************************************************************/
 void
-crcInit(void)
+crc_init(void)
 {
     crc			   remainder;
 	int			   dividend;
@@ -113,7 +113,7 @@ crcInit(void)
  *
  *********************************************************************/
 crc
-crcFast(unsigned char const message[], int nBytes)
+crc_fast(unsigned char const message[], int nBytes)
 {
     crc	           remainder = INITIAL_REMAINDER;
     unsigned char  data;

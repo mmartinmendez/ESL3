@@ -20,7 +20,9 @@
 #include "ml.h"
 #include "app_util_platform.h"
 #include "message/message.h"
+#include "message/crc.h"
 #include <math.h>
+#include <string.h>
 
 #define RED		22
 #define YELLOW		24

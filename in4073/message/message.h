@@ -12,9 +12,11 @@
 #ifndef MESSAGE_H__
 #define MESSAGE_H__
 
+#pragma pack(1)
+
 typedef struct {
 	uint8_t message_type;
-	uint8_t crc;
+	uint16_t crc;
 	uint8_t data[4];
 } standard_message_t;
 

@@ -184,7 +184,7 @@ void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
 	memset(&message, 0, sizeof(standard_message_t));
 
 	// fill in message data members
-	message.message_type = END_BYTE;
+	message.message_type = 0x01;
 
 	if (data_len > sizeof(message.data))
 		return;
@@ -192,7 +192,7 @@ void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
 	memcpy(&message.data, data, data_len);
 
 	message.crc = 0; 
-	message.crc = crcFast((unsigned char const*) message_ptr, sizeof(message));
+	message.crc = crc_fast((unsigned char const*) message_ptr, sizeof(message));
 
 
 	rs232_putchar(START_BYTE);
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
 
 	term_initio();
-	crcInit();
+	crc_init();
 	rs232_open();
 
 	term_puts("Type ^C to exit\n");

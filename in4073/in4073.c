@@ -74,11 +74,37 @@ void echo_message(uint8_t * message, uint8_t message_len)
 	printf("\n");
 }
 
+void handle_message(uint8_t * buffer, uint8_t buffer_len)
+{
+
+	standard_message_t * message_ptr = (standard_message_t *) buffer;
+	uint16_t crc_received, crc_calculated;
+
+	echo_message((uint8_t *) &buffer, buffer_len);
+	printf("buffer_len: %d, sizeof(message): %d\n", buffer_len, sizeof(standard_message_t));
+
+	// if we receive more bytes than we expect, return
+	if(buffer_len > sizeof(standard_message_t))
+		return;
+
+	// store the received crc
+	crc_received = message_ptr->crc;
+	
+	// calculte the crc
+	message_ptr->crc = 0;
+	crc_calculated = crc_fast((unsigned char const*) message_ptr, sizeof(standard_message_t));
+
+	printf("message type: 0x%X, crc_received: 0x%X, crc_calculated: 0x%X, data: %s\n", 
+		message_ptr->message_type, crc_received, crc_calculated, message_ptr->data);
+}
+
 void parse_message(uint8_t c)
 {
 	static uint8_t msg_index = 0;
 	static bool is_escaped = false;
 	static uint8_t buffer[30];
+
+
 
 	// TODO remove this - debug print received char
 	printf("%X\n", c);
@@ -107,8 +133,7 @@ void parse_message(uint8_t c)
 		}
 		case END_BYTE:
 		{
-			// handle our message
-			echo_message((uint8_t *) &buffer, msg_index);
+			handle_message(buffer, msg_index);
 			msg_index = 0;
 			break;
 		}
@@ -141,6 +166,7 @@ int main(void)
 	baro_init();
 	spi_flash_init();
 	ble_init();
+	crc_init();
 
 	uint32_t counter = 0;
 	demo_done = false;
