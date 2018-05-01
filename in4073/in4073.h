@@ -110,4 +110,7 @@ volatile bool radio_active;
 void ble_init(void);
 void ble_send(void);
 
+// Buffer
+message_t send_buffer;
+
 #endif // IN4073_H__

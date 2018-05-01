@@ -74,17 +74,22 @@ void echo_message(uint8_t * message, uint8_t message_len)
 	printf("\n");
 }
 
+void send_mode_update(uint8_t mode)
+{
+
+}
+
 void handle_message(uint8_t * buffer, uint8_t buffer_len)
 {
 
-	standard_message_t * message_ptr = (standard_message_t *) buffer;
+	message_t * message_ptr = (message_t *) buffer;
 	uint16_t crc_received, crc_calculated;
 
 	echo_message((uint8_t *) &buffer, buffer_len);
-	printf("buffer_len: %d, sizeof(message): %d\n", buffer_len, sizeof(standard_message_t));
+	printf("buffer_len: %d ", buffer_len);
 
 	// if we receive more bytes than we expect, return
-	if(buffer_len > sizeof(standard_message_t))
+	if(buffer_len > sizeof(message_t))
 		return;
 
 	// store the received crc
@@ -92,60 +97,33 @@ void handle_message(uint8_t * buffer, uint8_t buffer_len)
 	
 	// calculte the crc
 	message_ptr->crc = 0;
-	crc_calculated = crc_fast((unsigned char const*) message_ptr, sizeof(standard_message_t));
+	crc_calculated = crc_fast((unsigned char const*) message_ptr, buffer_len);
 
-	printf("message type: 0x%X, crc_received: 0x%X, crc_calculated: 0x%X, data: %s\n", 
-		message_ptr->message_type, crc_received, crc_calculated, message_ptr->data);
-}
+	printf("message type: 0x%X, crc_received: 0x%X, crc_calculated: 0x%X\n", 
+		message_ptr->message_type, crc_received, crc_calculated);
 
-void parse_message(uint8_t c)
-{
-	static uint8_t msg_index = 0;
-	static bool is_escaped = false;
-	static uint8_t buffer[30];
-
-
-
-	// TODO remove this - debug print received char
-	printf("%X\n", c);
-
-	// check for escaped bytes, discard escape bytes
-	if (is_escaped == false && c == ESCAPE)
+	switch ((msg_type_e) message_ptr->message_type)
 	{
-		is_escaped = true;
-		return;
-	}
-
-	// if this byte is escaped, reXOR it
-	if (is_escaped == true)
-	{
-		c ^= 0x20;
-		is_escaped = false;
-	}
-
-	// handle the incomming char
-	switch (c)
-	{
-		case START_BYTE:
+		case set_mode:
 		{
-			msg_index = 0; 
+			set_mode_data_t * data = (set_mode_data_t*) &(message_ptr->data);
+			printf("Received set mode command, mode: %d\n", data->mode);
+
+			// Now send mode update back to the pc
+			//send_mode_update(data->mode);
 			break;
 		}
-		case END_BYTE:
+		case input_data:
 		{
-			handle_message(buffer, msg_index);
-			msg_index = 0;
+			input_data_t * data = (input_data_t*) &(message_ptr->data);
+			printf("Received input command, lift: %d, roll: %d, pitch: %d, yaw: %d\n", 
+				data->lift, data->roll, data->pitch, data->yaw);
 			break;
 		}
+
 		default:
 		{
-			if(msg_index >= 30)
-			{
-				msg_index = 0;
-				return;
-			}
-
-			buffer[msg_index++] = c;
+			printf("Received unsupported msg_type: %d\n", message_ptr->message_type);
 			break;
 		}
 	}
@@ -168,6 +146,13 @@ int main(void)
 	ble_init();
 	crc_init();
 
+	// variables for input buffer
+	static uint8_t buffer[sizeof(message_t)];
+	static bool is_escaped = false;
+	static uint8_t msg_index;
+
+	uint8_t message_len = 0;
+
 	uint32_t counter = 0;
 	demo_done = false;
 
@@ -175,7 +160,17 @@ int main(void)
 	{
 		// if (rx_queue.count) process_key( dequeue(&rx_queue) );
 
-		if (rx_queue.count) parse_message( dequeue(&rx_queue) );
+		if (rx_queue.count)
+		{
+			message_len = parse_message(dequeue(&rx_queue), &msg_index, 
+				&is_escaped, buffer);
+
+			if (message_len > 0)
+			{
+				// we received an end-byte, now handle message
+				handle_message(buffer, message_len); 		
+			}	
+		} 
 
 		if (check_timer_flag()) 
 		{

@@ -175,30 +175,35 @@ int 	rs232_putchar(char c)
 	return result;
 }
 
-void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
+uint8_t pc_build_message(uint8_t message_type, uint8_t* data, uint8_t data_len, message_t * message)
 {
-	standard_message_t message;
-	uint8_t * message_ptr = (uint8_t *) &message;
-
-	// initialze message struct to zero
-	memset(&message, 0, sizeof(standard_message_t));
+	memset(message, 0, sizeof(message_t));
 
 	// fill in message data members
-	message.message_type = 0x01;
+	message->message_type = message_type;
 
-	if (data_len > sizeof(message.data))
-		return;
+	if (data_len > sizeof(message->data))
+		return data_len - sizeof(message->data);
 	
-	memcpy(&message.data, data, data_len);
+	memcpy((void*) &(message->data), data, data_len);
 
-	message.crc = 0; 
-	message.crc = crc_fast((unsigned char const*) message_ptr, sizeof(message));
+	data_len =  data_len + 3; // correct for crc and msg type size
 
+	message->crc = 0; 
+	message->crc = crc_fast((unsigned char const*) message, data_len);
+
+
+	return 0;
+}
+
+void send_message(message_t * message, uint8_t message_len)
+{
+	uint8_t * message_ptr = (uint8_t *) message;
 
 	rs232_putchar(START_BYTE);
 
 	// send data over uart
-	for (int i = 0; i < sizeof(standard_message_t); i++)
+	for (int i = 0; i < message_len; i++)
 	{
 		// check for special bytes, and add escaping where necessary
 		if(*(message_ptr) == START_BYTE ||
@@ -216,9 +221,51 @@ void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
 	}
 
 	rs232_putchar(END_BYTE);
-
 }
 
+void select_message(uint8_t c, message_t * send_buffer)
+{
+	msg_type_e msg_type;
+	message_data_u data;
+	uint8_t data_len = 0;
+	uint8_t message_len = 0;
+
+	switch(c)
+	{
+		case '1':
+		{
+			msg_type = set_mode;
+			data.set_mode_data.mode = 0;
+			data_len = sizeof(data.set_mode_data);
+			break;
+		}
+		case '2':
+		{
+			msg_type = input_data;
+			data.input_data.lift = 10;
+			data.input_data.roll = 20;
+			data.input_data.pitch = 30;
+			data.input_data.yaw = 40;
+			data_len = sizeof(data.input_data);
+			break;
+		}
+
+		default:
+		{
+			printf("No valid input\n");
+			return;
+		}
+	}
+
+	printf("data_len: %d\n", data_len);
+
+	message_len = build_message(msg_type, (uint8_t *) &data, data_len, send_buffer);
+
+	if (message_len > 0)
+	{
+		send_message(send_buffer, message_len);
+	}
+}
 
 /*----------------------------------------------------------------
  * main -- execute terminal
@@ -228,6 +275,8 @@ void send_message(uint8_t message_type, uint8_t* data, uint8_t data_len)
 int main(int argc, char **argv)
 {
 	char	c;
+
+	message_t send_buffer;
 
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
 
@@ -248,8 +297,7 @@ int main(int argc, char **argv)
 	{
 		if ((c = term_getchar_nb()) != -1)
 		{
-			uint8_t data[4] = "helo";
-			send_message(0x01, data, sizeof(data));
+			select_message(c, &send_buffer);
 			//rs232_putchar(c);
 		}
 
