@@ -59,11 +59,6 @@ void process_key(uint8_t c)
 	}
 }
 
-void echo_key(uint8_t c)
-{
-	printf("%X", c);
-}
-
 void echo_message(uint8_t * message, uint8_t message_len)
 {
 	for(int i = 0; i < message_len; i++)
@@ -74,46 +69,66 @@ void echo_message(uint8_t * message, uint8_t message_len)
 	printf("\n");
 }
 
+void send_message(message_t * message, uint8_t message_len)
+{
+	uint8_t * message_ptr = (uint8_t *) message;
+
+	putchar(START_BYTE);
+
+	// send data over uart
+	for (int i = 0; i < message_len; i++)
+	{
+		// check for special bytes, and add escaping where necessary
+		if(*(message_ptr) == START_BYTE ||
+			*(message_ptr) == END_BYTE ||
+			*(message_ptr) == ESCAPE )
+		{
+			putchar(ESCAPE);
+			putchar(*(message_ptr++) ^ 0x20);
+		} 
+		else
+		{
+			putchar(*(message_ptr++));
+		}
+
+	}
+
+	putchar(END_BYTE);
+	putchar('\n'); // add newline to flush send buffer
+}
+
 void send_mode_update(uint8_t mode)
 {
+	mode_update_t data;
+	uint8_t message_len;
 
+	data.mode = mode;
+	message_len = build_message(MSG_MODE_UPDATE, (uint8_t *) &data, 
+		sizeof(data), &send_buffer);
+
+	if (message_len > 0)
+	{
+		send_message(&send_buffer, message_len);
+	}
 }
 
 void handle_message(uint8_t * buffer, uint8_t buffer_len)
 {
 
 	message_t * message_ptr = (message_t *) buffer;
-	uint16_t crc_received, crc_calculated;
-
-	echo_message((uint8_t *) &buffer, buffer_len);
-	printf("buffer_len: %d ", buffer_len);
-
-	// if we receive more bytes than we expect, return
-	if(buffer_len > sizeof(message_t))
-		return;
-
-	// store the received crc
-	crc_received = message_ptr->crc;
-	
-	// calculte the crc
-	message_ptr->crc = 0;
-	crc_calculated = crc_fast((unsigned char const*) message_ptr, buffer_len);
-
-	printf("message type: 0x%X, crc_received: 0x%X, crc_calculated: 0x%X\n", 
-		message_ptr->message_type, crc_received, crc_calculated);
 
 	switch ((msg_type_e) message_ptr->message_type)
 	{
-		case set_mode:
+		case MSG_SET_MODE:
 		{
 			set_mode_data_t * data = (set_mode_data_t*) &(message_ptr->data);
 			printf("Received set mode command, mode: %d\n", data->mode);
 
 			// Now send mode update back to the pc
-			//send_mode_update(data->mode);
+			send_mode_update(data->mode);
 			break;
 		}
-		case input_data:
+		case MSG_INPUT_DATA:
 		{
 			input_data_t * data = (input_data_t*) &(message_ptr->data);
 			printf("Received input command, lift: %d, roll: %d, pitch: %d, yaw: %d\n", 
@@ -152,6 +167,7 @@ int main(void)
 	static uint8_t msg_index;
 
 	uint8_t message_len = 0;
+	uint8_t c;
 
 	uint32_t counter = 0;
 	demo_done = false;
@@ -162,8 +178,11 @@ int main(void)
 
 		if (rx_queue.count)
 		{
-			message_len = parse_message(dequeue(&rx_queue), &msg_index, 
-				&is_escaped, buffer);
+			c = dequeue(&rx_queue);
+			printf("%X\n", c); // DEBUG PRINT - REMOVE LATER
+
+			message_len = parse_message(c, &msg_index, 
+				&is_escaped, buffer, "DRONE");
 
 			if (message_len > 0)
 			{

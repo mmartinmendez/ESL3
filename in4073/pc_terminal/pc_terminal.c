@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include "../message/message.h"
 #include "../message/crc.h"
+#include <ctype.h>
 
 /*------------------------------------------------------------
  * console I/O
@@ -175,27 +176,6 @@ int 	rs232_putchar(char c)
 	return result;
 }
 
-uint8_t pc_build_message(uint8_t message_type, uint8_t* data, uint8_t data_len, message_t * message)
-{
-	memset(message, 0, sizeof(message_t));
-
-	// fill in message data members
-	message->message_type = message_type;
-
-	if (data_len > sizeof(message->data))
-		return data_len - sizeof(message->data);
-	
-	memcpy((void*) &(message->data), data, data_len);
-
-	data_len =  data_len + 3; // correct for crc and msg type size
-
-	message->crc = 0; 
-	message->crc = crc_fast((unsigned char const*) message, data_len);
-
-
-	return 0;
-}
-
 void send_message(message_t * message, uint8_t message_len)
 {
 	uint8_t * message_ptr = (uint8_t *) message;
@@ -232,16 +212,18 @@ void select_message(uint8_t c, message_t * send_buffer)
 
 	switch(c)
 	{
+		case '0':
 		case '1':
+		case '2':
 		{
-			msg_type = set_mode;
-			data.set_mode_data.mode = 0;
+			msg_type = MSG_SET_MODE;
+			data.set_mode_data.mode = c - '0';
 			data_len = sizeof(data.set_mode_data);
 			break;
 		}
-		case '2':
+		case 'a':
 		{
-			msg_type = input_data;
+			msg_type = MSG_INPUT_DATA;
 			data.input_data.lift = 10;
 			data.input_data.roll = 20;
 			data.input_data.pitch = 30;
@@ -252,18 +234,35 @@ void select_message(uint8_t c, message_t * send_buffer)
 
 		default:
 		{
-			printf("No valid input\n");
+			printf("No valid input: %c\n", c);
 			return;
 		}
 	}
-
-	printf("data_len: %d\n", data_len);
 
 	message_len = build_message(msg_type, (uint8_t *) &data, data_len, send_buffer);
 
 	if (message_len > 0)
 	{
 		send_message(send_buffer, message_len);
+	}
+}
+
+void handle_message(message_t * buffer, uint8_t buffer_len)
+{
+	switch ((msg_type_e) buffer->message_type)
+	{
+		case MSG_MODE_UPDATE:
+		{
+			mode_update_t * data = (mode_update_t*) &(buffer->data);
+			printf("Received mode update command, mode: %d\n", data->mode);
+			break;
+		}
+
+		default:
+		{
+			printf("Received unsupported msg_type: %d\n", buffer->message_type);
+			break;
+		}
 	}
 }
 
@@ -277,6 +276,10 @@ int main(int argc, char **argv)
 	char	c;
 
 	message_t send_buffer;
+	// variables for receiving messages
+	message_t receive_buffer;
+	bool is_escaped = false;
+	uint8_t msg_index = 0;
 
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
 
@@ -302,7 +305,20 @@ int main(int argc, char **argv)
 		}
 
 		if ((c = rs232_getchar_nb()) != -1)
-			term_putchar(c);
+		{
+			uint8_t message_len;
+
+			//term_putchar(c);
+			
+			message_len = parse_message(c, &msg_index, 
+				&is_escaped, (uint8_t *) &receive_buffer, "PC");
+
+			if (message_len > 0)
+			{
+				// we received an end-byte, now handle message
+				handle_message(&receive_buffer, message_len); 		
+			}	
+		}
 
 	}
 

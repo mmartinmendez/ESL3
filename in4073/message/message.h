@@ -23,16 +23,16 @@
 
 typedef enum 
 {
-	set_mode = 0x01,		// PC -> Drone
-	mode_update,			// Drone -> PC
-	input_data,				// PC -> Drone
+	MSG_SET_MODE = 0x01,		// PC -> DRONE
+	MSG_MODE_UPDATE,			// DRONE -> PC
+	MSG_INPUT_DATA,				// PC -> DRONE
 
-	calibration_data,		// Drone -> PC
-	motor_data,				// Drone -> PC
-	battery_data,			// Drone -> PC
-	barometer_data,			// Drone -> PC
+	MSG_CALIBRATION_DATA,		// DRONE -> PC
+	MSG_MOTOR_DATA,				// DRONE -> PC
+	MSG_BATTERY_DATA,			// DRONE -> PC
+	MSG_BAROMETER_DATA,			// DRONE -> PC
 
-	logging_data 			// Drone -> PC
+	MSG_LOGGING_DATA 			// DRONE -> PC
 
 } msg_type_e;
 
@@ -115,7 +115,7 @@ typedef struct {
 uint8_t build_message(uint8_t message_type, uint8_t* message_data, 
 				   	  uint8_t data_len, message_t * message);
 uint8_t parse_message(uint8_t c, uint8_t * msg_index, 
-				   bool * is_escaped, uint8_t * buffer);
+				   bool * is_escaped, uint8_t * buffer, char* source);
 
 
 #endif // MESSAGE_H__
