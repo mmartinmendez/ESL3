@@ -1,0 +1,3 @@
+gcc -lpthread window1.c -o window1 `pkg-config --cflags --libs gtk+-3.0`
+make js
+./js /dev/input/js1 | ./window1
