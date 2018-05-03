@@ -17,7 +17,8 @@
 #define END_BYTE 	0x13
 #define ESCAPE		0x7D
 
-
+#define debug_printf(...) printf(__VA_ARGS__) 
+#define ENABLE_4073_PRINT 
 
 #pragma pack(1)
 
@@ -32,6 +33,7 @@ typedef enum
 	MSG_BATTERY_DATA,			// DRONE -> PC
 	MSG_BAROMETER_DATA,			// DRONE -> PC
 
+	MSG_TERMINATE,				// PC -> DRONE
 	MSG_LOGGING_DATA 			// DRONE -> PC
 
 } msg_type_e;
@@ -113,9 +115,9 @@ typedef struct {
 } message_t;
 
 uint8_t build_message(uint8_t message_type, uint8_t* message_data, 
-				   	  uint8_t data_len, message_t * message);
+	uint8_t data_len, message_t * message);
 uint8_t parse_message(uint8_t c, uint8_t * msg_index, 
-				   bool * is_escaped, uint8_t * buffer, char* source);
+	bool * is_escaped, uint8_t * buffer, char* source);
 
 
 #endif // MESSAGE_H__
