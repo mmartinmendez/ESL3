@@ -5,24 +5,22 @@
 #include <pthread.h>
 #include <termios.h>
 #include <stdio.h>
-
-#define SIDE_CENTER_VALUE 1000
-#define SIDE_MAX_OFFSET 1000
-
-#define FRONT_CENTER_VALUE 1000
-#define FRONT_MAX_OFFSET 1000
-
-#define YAW_CENTER_VALUE 1000
-#define YAW_MAX_OFFSET 1000
-
-#define POWER_CENTER_VALUE 1000
-#define POWER_MAX_OFFSET 1000
+#include <time.h>
+#include <assert.h>
+#include "joystick.h"
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 GtkWidget *bar_power;
 GtkWidget *bar_front;
 GtkWidget *bar_back;
 GtkWidget *bar_left;
 GtkWidget *bar_right;
+GtkWidget *bar_yaw_left;
+GtkWidget *bar_yaw_right;
 
 GtkWidget *label_1;
 GtkWidget *label_2;
@@ -37,84 +35,36 @@ GtkWidget *label_10;
 GtkWidget *label_11;
 GtkWidget *label_12;
 
-//code for reading character without enter ************************************************************************************
+int	axis[6];
+int	button[12];
 
-static struct termios old, new;
 
-/* Initialize new terminal i/o settings */
-void initTermios(int echo) 
+unsigned int    mon_time_ms(void)
 {
-  tcgetattr(0, &old); /* grab old terminal i/o settings */
-  new = old; /* make new settings same as old settings */
-  new.c_lflag &= ~ICANON; /* disable buffered i/o */
-  if (echo) {
-      new.c_lflag |= ECHO; /* set echo mode */
-  } else {
-      new.c_lflag &= ~ECHO; /* set no echo mode */
-  }
-  tcsetattr(0, TCSANOW, &new); /* use these new terminal i/o settings now */
+        unsigned int    ms;
+        struct timeval  tv;
+        struct timezone tz;
+
+        gettimeofday(&tv, &tz);
+        ms = 1000 * (tv.tv_sec % 65); // 65 sec wrap around
+        ms = ms + tv.tv_usec / 1000;
+        return ms;
 }
 
-/* Restore old terminal i/o settings */
-void resetTermios(void) 
+void    mon_delay_ms(unsigned int ms)
 {
-  tcsetattr(0, TCSANOW, &old);
-}
+        struct timespec req, rem;
 
-/* Read 1 character - echo defines echo mode */
-char getch_(int echo) 
-{
-  char ch;
-  initTermios(echo);
-  ch = getchar();
-  resetTermios();
-  return ch;
-}
-
-/* Read 1 character without echo */
-char getch(void) 
-{
-  return getch_(0);
-}
-
-/* Read 1 character with echo */
-char getche(void) 
-{
-  return getch_(1);
+        req.tv_sec = ms / 1000;
+        req.tv_nsec = 1000000 * (ms % 1000);
+        assert(nanosleep(&req,&rem) == 0);
 }
 
 
-//**********************************************************************************
-
-
-void *func(void *param)
+#define JS_DEV	"/dev/input/js1"
+//reading joystick values
+void *jsfunc(void *para)
 {
-char scanner[50] = {0};
-char buffer[1] = {0};
-float horizontal = 0;
-float vertical = 0;
-float power = 0;
-float maxvalue = 32767;
-float doublemaxvalue = 65534;
-int jsfront = 0;
-int jsside = 0;
-int jsyaw = 0;
-int jspower = 0;
-int jsthumb_1 = 0;
-int jsthumb_2 = 0;
-int button_1 = 0;
-int button_2 = 0;
-int button_3 = 0;
-int button_4 = 0;
-int button_5 = 0;
-int button_6 = 0;
-int button_7 = 0;
-int button_8 = 0;
-int button_9 = 0;
-int button_10 = 0;
-int button_11 = 0;
-int button_12 = 0;
-
 int buttoncheck_1 = 0;
 int buttoncheck_2 = 0;
 int buttoncheck_3 = 0;
@@ -127,288 +77,283 @@ int buttoncheck_9 = 0;
 int buttoncheck_10 = 0;
 int buttoncheck_11 = 0;
 int buttoncheck_12 = 0;
+float horizontal = 0;
+float vertical = 0;
+float power = 0;
+float yaw = 0;
+float maxvalue = 32767;
+float doublemaxvalue = 65534;
+
+	int 		fd;
+	struct js_event js;
+	unsigned int	t, i;
+
+	if ((fd = open(JS_DEV, O_RDONLY)) < 0) {
+		perror("jstest");
+		exit(1);
+	}
+
+	/* non-blocking mode
+	 */
+	fcntl(fd, F_SETFL, O_NONBLOCK);
+
+	while (1) {
 
 
-//char **arguments = (char**)param;
+		/* simulate work
+		 */
+		mon_delay_ms(10);
+		t = mon_time_ms();
 
-while (1)
-{
-fgets(scanner, sizeof(scanner) , stdin);
-sscanf(scanner , "%*i %i %i %i %i %i %i %*s %i %i %i %i %i %i %i %i %i %i %i %i \n", &jsside, &jsfront, &jsyaw, &jspower, &jsthumb_1, &jsthumb_2, &button_1, &button_2, &button_3, &button_4, &button_5, &button_6, &button_7, &button_8, &button_9, &button_10, &button_11, &button_12 );
+		/* check up on JS
+		 */
+		while (read(fd, &js, sizeof(struct js_event)) == 
+		       			sizeof(struct js_event))  {
 
-//buffer[0] = getch();
-//buffer[0] = getchar();
+			/* register data
+			 */
+			// fprintf(stderr,".");
+			switch(js.type & ~JS_EVENT_INIT) {
+				case JS_EVENT_BUTTON:
+					button[js.number] = js.value;
+					break;
+				case JS_EVENT_AXIS:
+					axis[js.number] = js.value;
+					break;
+			}
+		}
+		if (errno != EAGAIN) {
+			perror("\njs: error reading (EAGAIN)");
+			exit (1);
+		}
 
-printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i \n", jsside, jsfront, jsyaw, jspower, jsthumb_1, jsthumb_2, button_1, button_2, button_3, button_4, button_5, button_6, button_7, button_8, button_9, button_10, button_11, button_12 );
+		printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i \n",t , axis[0],axis[1],axis[2],axis[3],axis[4],axis[5],button[0] ,button[1] ,button[2] ,button[3] ,button[4] ,button[5] ,button[6] ,button[7] ,button[8] ,button[9] ,button[10] ,button[11] );
+	
 
-
-if (button_1 != buttoncheck_1)
+if (button[0] != buttoncheck_1)
 	{
-	if (button_1 == 0)
+	if (button[0] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_1),"  Button 1  \n      OFF");
-		buttoncheck_1 = button_1 ;
+		buttoncheck_1 = button[0] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_1),"  Button 1  \n      ON");
-		buttoncheck_1 = button_1 ;
+		buttoncheck_1 = button[0] ;
 		}
 	}
 
-if (button_2 != buttoncheck_2)
+if (button[1] != buttoncheck_2)
 	{
-	if (button_2 == 0)
+	if (button[1] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_2),"  Button 2  \n      OFF");
-		buttoncheck_2 = button_2 ;
+		buttoncheck_2 = button[1] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_2),"  Button 2  \n      ON");
-		buttoncheck_2 = button_2 ;
+		buttoncheck_2 = button[1] ;
 		}
 	}
 
-if (button_3 != buttoncheck_3)
+if (button[2] != buttoncheck_3)
 	{
-	if (button_3 == 0)
+	if (button[2] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_3),"  Button 3  \n      OFF");
-		buttoncheck_3 = button_3 ;
+		buttoncheck_3 = button[2] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_3),"  Button 3  \n      ON");
-		buttoncheck_3 = button_3 ;
+		buttoncheck_3 = button[2] ;
 		}
 	}
 
-if (button_4 != buttoncheck_4)
+if (button[3] != buttoncheck_4)
 	{
-	if (button_4 == 0)
+	if (button[3] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_4),"  Button 4  \n      OFF");
-		buttoncheck_4 = button_4 ;
+		buttoncheck_4 = button[3] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_4),"  Button 4  \n      ON");
-		buttoncheck_4 = button_4 ;
+		buttoncheck_4 = button[3] ;
 		}
 	}
 
-if (button_5 != buttoncheck_5)
+if (button[4] != buttoncheck_5)
 	{
-	if (button_5 == 0)
+	if (button[4] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_5),"  Button 5  \n      OFF");
-		buttoncheck_5 = button_5 ;
+		buttoncheck_5 = button[4] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_5),"  Button 5  \n      ON");
-		buttoncheck_5 = button_5 ;
+		buttoncheck_5 = button[4] ;
 		}
 	}
 
-if (button_6 != buttoncheck_6)
+if (button[5] != buttoncheck_6)
 	{
-	if (button_6 == 0)
+	if (button[5] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_6),"  Button 6  \n      OFF");
-		buttoncheck_6 = button_6 ;
+		buttoncheck_6 = button[5] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_6),"  Button 6  \n      ON");
-		buttoncheck_6 = button_6 ;
+		buttoncheck_6 = button[5] ;
 		}
 	}
 
-if (button_7 != buttoncheck_7)
+if (button[6] != buttoncheck_7)
 	{
-	if (button_7 == 0)
+	if (button[6] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_7),"  Button 7  \n      OFF");
-		buttoncheck_7 = button_7 ;
+		buttoncheck_7 = button[6] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_7),"  Button 7  \n      ON");
-		buttoncheck_7 = button_7 ;
+		buttoncheck_7 = button[6] ;
 		}
 	}
 
-if (button_8 != buttoncheck_8)
+if (button[7] != buttoncheck_8)
 	{
-	if (button_8 == 0)
+	if (button[7] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_8),"  Button 8  \n      OFF");
-		buttoncheck_8 = button_8 ;
+		buttoncheck_8 = button[7] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_8),"  Button 8  \n      ON");
-		buttoncheck_8 = button_8 ;
+		buttoncheck_8 = button[7] ;
 		}
 	}
 
-if (button_9 != buttoncheck_9)
+if (button[8] != buttoncheck_9)
 	{
-	if (button_9 == 0)
+	if (button[8] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_9),"  Button 9  \n      OFF");
-		buttoncheck_9 = button_9 ;
+		buttoncheck_9 = button[8] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_9),"  Button 9  \n      ON");
-		buttoncheck_9 = button_9 ;
+		buttoncheck_9 = button[8] ;
 		}
 	}
 
-if (button_10 != buttoncheck_10)
+if (button[9] != buttoncheck_10)
 	{
-	if (button_10 == 0)
+	if (button[9] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_10),"  Button 10  \n      OFF");
-		buttoncheck_10 = button_10 ;
+		buttoncheck_10 = button[9] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_10),"  Button 10  \n      ON");
-		buttoncheck_10 = button_10 ;
+		buttoncheck_10 = button[9] ;
 		}
 	}
 
-if (button_11 != buttoncheck_11)
+if (button[10] != buttoncheck_11)
 	{
-	if (button_11 == 0)
+	if (button[10] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_11),"  Button 11  \n      OFF");
-		buttoncheck_11 = button_11 ;
+		buttoncheck_11 = button[10] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_11),"  Button 11  \n      ON");
-		buttoncheck_11 = button_11 ;
+		buttoncheck_11 = button[10] ;
 		}
 	}
 
-if (button_12 != buttoncheck_12)
+if (button[11] != buttoncheck_12)
 	{
-	if (button_12 == 0)
+	if (button[11] == 0)
 		{
 		gtk_label_set_text( GTK_LABEL(label_12),"  Button 12  \n      OFF");
-		buttoncheck_12 = button_12 ;
+		buttoncheck_12 = button[11] ;
 		}
 	else
 		{
 		gtk_label_set_text( GTK_LABEL(label_12),"  Button 12  \n      ON");
-		buttoncheck_12 = button_12 ;
+		buttoncheck_12 = button[11] ;
 		}
 	}
 
-horizontal = jsside/maxvalue;
-vertical = 0 - jsfront/maxvalue;
-power = (32767-jspower)/doublemaxvalue;
-
-
-
-if (atoi(buffer) == 8)
-  	{
-	if (vertical != 1)
-		{
-      		vertical = vertical + 0.1;
-		}
-        }
-
-if (atoi(buffer) == 2)
-  	{
-	if (vertical != -1)
-		{
-      		vertical = vertical - 0.1;
-		}
-	}
-
-if (atoi(buffer) == 4)
-  	{
-	if (horizontal != -1)
-		{
-      		horizontal = horizontal - 0.1;
-		}
-        }
-
-if (atoi(buffer) == 6)
-  	{
-	if (horizontal != 1)
-		{
-      		horizontal = horizontal + 0.1;
-		}
-	}
-
-if (atoi(buffer) == 9)
-  	{
-	if (power != 1)
-		{
-      		power = power + 0.1;
-		}
-	}
-
-if (atoi(buffer) == 3)
-  	{
-	if (power != 0)
-		{
-      		power = power - 0.1;
-		}
-	}
+horizontal = axis[0]/maxvalue;
+vertical = 0 - axis[1]/maxvalue;
+power = (32767-axis[3])/doublemaxvalue;
+yaw = axis[2]/maxvalue;
 
 if (horizontal <= 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0 - horizontal);
+	usleep(1000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), 0);
+	usleep(1000);
 	}
 if (horizontal > 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0);
+	usleep(1000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), horizontal);
+	usleep(1000);
 	}
 if (vertical <= 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0 - vertical);
+	usleep(1000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), 0);
+	usleep(1000);
 	}
 if (vertical > 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0);
+	usleep(1000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), vertical);
+	usleep(1000);
+	}
+if (yaw <= 0)
+	{
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0 - yaw);
+	usleep(1000);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), 0);
+	usleep(1000);
+	}
+if (yaw > 0)
+	{
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0);
+	usleep(1000);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw);
+	usleep(1000);
 	}
 
 gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_power), power);
+	usleep(1000);
 
+	}
+	printf("\n<exit>\n");
 }
 
-return NULL;
-}
 
-int myfunction()
-	{
-	while(1)
-		{
-		printf("Hello World\n");
-		sleep(1);
-		}
-			
-	return 0;
-	}
-
-/* This is a callback function. The data arguments are ignored
- * in this example. More on callbacks below. */
-static void hello(GtkWidget *widget, gpointer data)
-	{
-    	g_print ("Hello World\n");
-	}
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 	{
@@ -444,14 +389,22 @@ int main(int argc, char* argv[])
 	float back = 0;
 	float left = 0;
 	float right = 0;
+	float yaw_left = 0.8;
+	float yaw_right = 0.8;
 
 	pthread_t input_check;
+	pthread_t js_check;
 
+if(pthread_create (&js_check, NULL, jsfunc, (void *) argv))
+	{
+    	perror("ERROR creating jsfunc thread.");
+	}
+/*
 if(pthread_create (&input_check, NULL, func, (void *) argv))
 	{
     	perror("ERROR creating func thread.");
 	}
-    
+*/
     	gtk_init (&argc, &argv);
 
 	int vposition = 1;
@@ -510,6 +463,19 @@ if(pthread_create (&input_check, NULL, func, (void *) argv))
 	//gtk_widget_set_size_request (bar_right, 50, 40);
 	gtk_grid_attach (GTK_GRID (grid), bar_power, vposition + 3, hposition + 0, 1, 3);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_power), 0);
+
+	//create progress bar_yaw_left
+	bar_yaw_left = gtk_progress_bar_new();
+	gtk_progress_bar_set_inverted (GTK_PROGRESS_BAR(bar_yaw_left), TRUE);
+	//gtk_widget_set_size_request (bar_left, 50, 40);
+	gtk_grid_attach (GTK_GRID (grid), bar_yaw_left, vposition + 0, hposition + 3, 1, 1);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), yaw_left);
+
+	//create progress bar_yaw_right
+	bar_yaw_right = gtk_progress_bar_new();
+	//gtk_widget_set_size_request (bar_right, 50, 40);
+	gtk_grid_attach (GTK_GRID (grid), bar_yaw_right, vposition + 2, hposition + 3, 1, 1);
+	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw_right);
 
 	//create progress bar_1
 	bar_1 = gtk_progress_bar_new();
@@ -584,8 +550,6 @@ if(pthread_create (&input_check, NULL, func, (void *) argv))
 
 	//show everything in window
 	gtk_widget_show_all (window);
-
-    	//g_print ("Hello World\n");
     
     	gtk_main ();
 
