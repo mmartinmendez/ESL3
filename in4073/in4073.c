@@ -114,7 +114,7 @@ void send_mode_update(uint8_t mode)
 
 void handle_message(uint8_t * buffer, uint8_t buffer_len)
 {
-
+	static uint8_t reply_counter = 0; // TODO remove this
 	message_t * message_ptr = (message_t *) buffer;
 
 	switch ((msg_type_e) message_ptr->message_type)
@@ -124,8 +124,15 @@ void handle_message(uint8_t * buffer, uint8_t buffer_len)
 			set_mode_data_t * data = (set_mode_data_t*) &(message_ptr->data);
 			printf("Received set mode command, mode: %d\n", data->mode);
 
-			// Now send mode update back to the pc
-			send_mode_update(data->mode);
+			// TODO remove reply counter
+			reply_counter++;
+			if (reply_counter == 3) 
+			{
+				// Now send mode update back to the pc
+				send_mode_update(data->mode);
+				reply_counter = 0;
+			}
+
 			break;
 		}
 		case MSG_INPUT_DATA:
@@ -210,7 +217,10 @@ int main(void)
 		if (check_sensor_int_flag()) 
 		{
 			get_dmp_data();
-			run_filters_and_control();
+			input_data_t data;
+			memset(&data,0,sizeof(data));
+		
+			run_filters_and_control(&data);
 		}
 	}	
 

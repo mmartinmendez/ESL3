@@ -20,7 +20,7 @@ void update_motors(void)
 	motor[3] = ae[3];
 }
 
-void run_filters_and_control()
+void run_filters_and_control(input_data_t * data)
 {
 	// fancy stuff here
 	// control loops and/or filters
@@ -28,12 +28,12 @@ void run_filters_and_control()
 	// ae[0] = xxx, ae[1] = yyy etc etc
 
 	//manual mode
-	input_data_t * data; 
+	
 
-	int16_t liftdata = data.lift;
-	int16_t rolldata = data.roll;
-	int16_t pitchdata = data.pitch;
-	int16_t yawdata = data.yaw;
+	int16_t liftdata = data->lift;
+	int16_t rolldata = data->roll;
+	int16_t pitchdata = data->pitch;
+	int16_t yawdata = data->yaw;
 
 	// TO-DO mapping from input to usable values
 	// i.e rolldata from -50 -> 50,  [-50, 0] roll left, [0, 50] roll right
