@@ -94,6 +94,8 @@ char buffer[1] = {0};
 float horizontal = 0;
 float vertical = 0;
 float power = 0;
+float maxvalue = 32767;
+float doublemaxvalue = 65534;
 int jsfront = 0;
 int jsside = 0;
 int jsyaw = 0;
@@ -134,7 +136,7 @@ while (1)
 fgets(scanner, sizeof(scanner) , stdin);
 sscanf(scanner , "%*i %i %i %i %i %i %i %*s %i %i %i %i %i %i %i %i %i %i %i %i \n", &jsside, &jsfront, &jsyaw, &jspower, &jsthumb_1, &jsthumb_2, &button_1, &button_2, &button_3, &button_4, &button_5, &button_6, &button_7, &button_8, &button_9, &button_10, &button_11, &button_12 );
 
-buffer[0] = getch();
+//buffer[0] = getch();
 //buffer[0] = getchar();
 
 printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i \n", jsside, jsfront, jsyaw, jspower, jsthumb_1, jsthumb_2, button_1, button_2, button_3, button_4, button_5, button_6, button_7, button_8, button_9, button_10, button_11, button_12 );
@@ -308,7 +310,9 @@ if (button_12 != buttoncheck_12)
 		}
 	}
 
-//horizontal = (jsside - offset)/max;
+horizontal = jsside/maxvalue;
+vertical = 0 - jsfront/maxvalue;
+power = (32767-jspower)/doublemaxvalue;
 
 
 
