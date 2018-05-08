@@ -17,7 +17,7 @@
 #define END_BYTE 	0x13
 #define ESCAPE		0x7D
 
-#define debug_printf(...) printf(__VA_ARGS__) 
+#define debug_printf(...) //printf(__VA_ARGS__) 
 #define ENABLE_4073_PRINT 
 
 #pragma pack(1)
@@ -50,10 +50,10 @@ typedef struct
 
 typedef struct 
 {
-	uint16_t lift;
-	uint16_t roll;
-	uint16_t pitch;
-	uint16_t yaw;
+	int8_t lift;
+	int8_t roll;
+	int8_t pitch;
+	int8_t yaw;
 } input_data_t; // PC -> Drone
 
 typedef struct 

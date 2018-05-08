@@ -15,50 +15,6 @@
 
 #include "in4073.h"
 
-/*------------------------------------------------------------------
- * process_key -- process command keys
- *------------------------------------------------------------------
- */
-void process_key(uint8_t c)
-{
-	switch (c)
-	{
-		case 'q':
-			ae[0] += 10;
-			break;
-		case 'a':
-			ae[0] -= 10;
-			if (ae[0] < 0) ae[0] = 0;
-			break;
-		case 'w':
-			ae[1] += 10;
-			break;
-		case 's':
-			ae[1] -= 10;
-			if (ae[1] < 0) ae[1] = 0;
-			break;
-		case 'e':
-			ae[2] += 10;
-			break;
-		case 'd':
-			ae[2] -= 10;
-			if (ae[2] < 0) ae[2] = 0;
-			break;
-		case 'r':
-			ae[3] += 10;
-			break;
-		case 'f':
-			ae[3] -= 10;
-			if (ae[3] < 0) ae[3] = 0;
-			break;
-		case 27:
-			demo_done = true;
-			break;
-		default:
-			nrf_gpio_pin_toggle(RED);
-	}
-}
-
 void echo_message(uint8_t * message, uint8_t message_len)
 {
 	for(int i = 0; i < message_len; i++)
@@ -144,6 +100,11 @@ uint8_t handle_message(uint8_t * buffer, uint8_t buffer_len)
 				data->lift, data->roll, data->pitch, data->yaw);
 			break;
 		}
+		case MSG_TERMINATE:
+		{
+			demo_done = true;
+			break;
+		}
 
 		default:
 		{
@@ -188,8 +149,6 @@ int main(void)
 
 	while (!demo_done)
 	{
-		// if (rx_queue.count) process_key( dequeue(&rx_queue) );
-
 		if (rx_queue.count)
 		{
 			c = dequeue(&rx_queue);

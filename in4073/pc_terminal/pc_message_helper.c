@@ -32,6 +32,48 @@ void send_message(message_t * message, uint8_t message_len)
 	rs232_putchar(END_BYTE);
 }
 
+void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
+{
+	uint8_t message_len, data_len;
+	message_data_u data;
+
+	data = send_buffer->data;
+
+	data_len = sizeof(data);
+	switch (msg_type)
+	{
+		case MSG_SET_MODE:
+		{
+			data_len = sizeof(data.set_mode_data);
+			break;
+		}
+		case MSG_INPUT_DATA:
+		{
+			data_len = sizeof(data.input_data);
+			break;
+		}
+		case MSG_TERMINATE:
+		{
+			data_len = 0;
+			break;
+		}
+		default:
+		{
+			printf("No valid msg_type is being send: %d\n", msg_type);			
+			return;
+		}
+	
+	}
+
+	message_len = build_message(msg_type, (uint8_t *) &data, data_len, 
+		send_buffer);
+
+	if (message_len > 0)
+	{
+		send_message(send_buffer, message_len);
+	}
+}
+
 // returns mode requested or 0xFF if no mode is set
 uint8_t select_message(uint8_t c, message_t * send_buffer)
 {
