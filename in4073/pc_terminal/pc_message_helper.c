@@ -87,14 +87,18 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 	return retval;
 }
 
-void handle_message(message_t * buffer, uint8_t buffer_len)
+
+uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 {
+	uint8_t retval = 0xFF;
+
 	switch ((msg_type_e) buffer->message_type)
 	{
 		case MSG_MODE_UPDATE:
 		{
 			mode_update_t * data = (mode_update_t*) &(buffer->data);
 			printf("PC: Received mode update command, mode: %d\n", data->mode);
+			retval = data->mode;
 			break;
 		}
 
@@ -105,4 +109,6 @@ void handle_message(message_t * buffer, uint8_t buffer_len)
 			break;
 		}
 	}
+
+	return retval;
 }

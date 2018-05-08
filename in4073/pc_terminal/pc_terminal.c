@@ -69,7 +69,11 @@ int main(int argc, char **argv)
 			if (message_len > 0)
 			{
 				// we received an end-byte, now handle message
-				handle_message(&receive_buffer, message_len); 		
+				retval = handle_message(&receive_buffer, message_len);
+				if (retval != 0xFF)
+				{
+					mode_received = retval;
+				} 		
 			}	
 		}
 
