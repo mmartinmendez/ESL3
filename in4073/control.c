@@ -20,7 +20,7 @@ void update_motors(void)
 	motor[3] = ae[3];
 }
 
-void run_filters_and_control(input_data_t * data)
+void run_filters_and_control(input_data_t * data, uint8_t current_mode)
 {
 	// fancy stuff here
 	// control loops and/or filters

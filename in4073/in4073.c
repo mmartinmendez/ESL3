@@ -112,10 +112,11 @@ void send_mode_update(uint8_t mode)
 	}
 }
 
-void handle_message(uint8_t * buffer, uint8_t buffer_len)
+uint8_t handle_message(uint8_t * buffer, uint8_t buffer_len)
 {
 	static uint8_t reply_counter = 0; // TODO remove this
 	message_t * message_ptr = (message_t *) buffer;
+	uint8_t retval = 0xFF;
 
 	switch ((msg_type_e) message_ptr->message_type)
 	{
@@ -123,6 +124,7 @@ void handle_message(uint8_t * buffer, uint8_t buffer_len)
 		{
 			set_mode_data_t * data = (set_mode_data_t*) &(message_ptr->data);
 			printf("Received set mode command, mode: %d\n", data->mode);
+			retval = data->mode;
 
 			// TODO remove reply counter
 			reply_counter++;
@@ -149,6 +151,8 @@ void handle_message(uint8_t * buffer, uint8_t buffer_len)
 			break;
 		}
 	}
+
+	return retval;
 }
 
 /*------------------------------------------------------------------
@@ -157,6 +161,7 @@ void handle_message(uint8_t * buffer, uint8_t buffer_len)
  */
 int main(void)
 {
+
 	uart_init();
 	gpio_init();
 	timers_init();
@@ -175,6 +180,8 @@ int main(void)
 
 	uint8_t message_len = 0;
 	uint8_t c;
+	uint8_t retval = 0;
+	uint8_t current_mode = 0;
 
 	uint32_t counter = 0;
 	demo_done = false;
@@ -194,7 +201,11 @@ int main(void)
 			if (message_len > 0)
 			{
 				// we received an end-byte, now handle message
-				handle_message(buffer, message_len); 		
+				retval = handle_message(buffer, message_len); 		
+				if (retval != 0xFF)
+				{
+					current_mode = retval;
+				}
 			}	
 		} 
 
@@ -220,7 +231,7 @@ int main(void)
 			input_data_t data;
 			memset(&data,0,sizeof(data));
 		
-			run_filters_and_control(&data);
+			run_filters_and_control(&data, current_mode);
 		}
 	}	
 
