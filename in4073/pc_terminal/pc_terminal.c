@@ -59,6 +59,9 @@ int main(int argc, char **argv)
 	// init joystick time
   	clock_gettime(CLOCK_MONOTONIC, &t_joystick);
 
+  	// start GUI thread
+
+
 	// send & receive
 	for (;;)
 	{
@@ -113,6 +116,9 @@ int main(int argc, char **argv)
 			axis_small[3] = axis[3] / 256;
 
 			read_joystick(axis, button);
+			
+			// update ui
+			// update_gui(axis, button);
 
 			printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
 

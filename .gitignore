@@ -3,6 +3,9 @@ components/
 gcc-arm-none-eabi/
 in4073/_build/
 
+# Sublime project
+*.sublime-workspace
+
 # Prerequisites
 *.d
 
