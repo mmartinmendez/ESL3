@@ -13,12 +13,12 @@
 
 #include <inttypes.h>
 #include <stdio.h>
-// #include "nrf_gpio.h"
-// #include "nrf_delay.h"
-// #include "inv_mpu.h"
-// #include "inv_mpu_dmp_motion_driver.h"
-// #include "ml.h"
-// #include "app_util_platform.h"
+#include "nrf_gpio.h"
+#include "nrf_delay.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include "ml.h"
+#include "app_util_platform.h"
 #include "message/message.h"
 #include "message/crc.h"
 #include <math.h>
