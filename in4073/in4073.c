@@ -68,6 +68,30 @@ void send_mode_update(uint8_t mode)
 	}
 }
 
+// void send_calibration_data(int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz)
+// {
+// 	calibration_data_t data;
+// 	uint8_t message_len
+//  	data.phi = phi;
+//  	data.theta = theta;
+//  	data.psi = psi;
+//  	data.sp = sp;
+//  	data.sq = sq;
+//  	data.sr = sr;
+//  	data.sax = sax;
+//  	data.say = say;
+//  	data.saz = saz;
+
+// 	message_len = build_message(MSG_CALIBRATION_DATA, (uint8_t *) &data, 
+// 			sizeof(data), &send_buffer);
+
+// 		if (message_len > 0)
+// 	{
+// 		send_message(&send_buffer, message_len);
+// 	}
+
+// }
+
 uint8_t handle_message(uint8_t * buffer, uint8_t buffer_len)
 {
 	static uint8_t reply_counter = 0; // TODO remove this
@@ -131,6 +155,7 @@ int main(void)
 	imu_init(true, 100);	
 	baro_init();
 	spi_flash_init();
+	flash_chip_erase();
 	ble_init();
 	crc_init();
 
@@ -190,7 +215,7 @@ int main(void)
 			input_data_t data;
 			memset(&data,0,sizeof(data));
 		
-			run_filters_and_control(&data, current_mode);
+			run_filters_and_control(&data, current_mode, bat_volt);
 		}
 	}	
 
