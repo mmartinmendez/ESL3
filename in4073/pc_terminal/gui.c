@@ -63,6 +63,9 @@ void update_gui (int axis[], int button[])
 	float maxvalue = 32767;
 	float doublemaxvalue = 65534;
 
+	// TODO remove this debug
+	printf("Calling update_gui\n");
+
 
 	if (button[0] != buttoncheck_1)
 	{
@@ -302,8 +305,8 @@ static void destroy(GtkWidget *widget, gpointer data)
     	gtk_main_quit ();
 	}
 
-int main(int argc, char* argv[])
-	{
+void *run_gui(void *para)
+{
     	GtkWidget *entry;
     	GtkWidget *window;
 	GtkWidget *button;
@@ -322,6 +325,10 @@ int main(int argc, char* argv[])
 	float yaw_left = 0.8;
 	float yaw_right = 0.8;
 
+	// TODO remove this debug
+	printf("Calling run_gui\n");
+
+#if 0
 	pthread_t input_check;
 	pthread_t js_check;
 
@@ -329,13 +336,9 @@ if(pthread_create (&js_check, NULL, jsfunc, (void *) argv))
 	{
     	perror("ERROR creating jsfunc thread.");
 	}
-/*
-if(pthread_create (&input_check, NULL, func, (void *) argv))
-	{
-    	perror("ERROR creating func thread.");
-	}
-*/
-    	gtk_init (&argc, &argv);
+#endif
+   	// gtk_init (&argc, &argv);
+   	gtk_init (NULL, NULL);
 
 	int vposition = 1;
 	int hposition = 1;

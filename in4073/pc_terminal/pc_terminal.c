@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "pc_rs232.h"
 #include "pc_term.h"
@@ -9,6 +10,7 @@
 #include "../message/message.h"
 #include "../message/crc.h"
 #include "joystick.h"
+#include "gui.h"
 
 /*----------------------------------------------------------------
  * main -- execute terminal
@@ -60,7 +62,12 @@ int main(int argc, char **argv)
   	clock_gettime(CLOCK_MONOTONIC, &t_joystick);
 
   	// start GUI thread
-
+  	pthread_t gui_thread;
+  	
+	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
+	{
+    	perror("ERROR creating jsfunc thread.");
+	}
 
 	// send & receive
 	for (;;)
