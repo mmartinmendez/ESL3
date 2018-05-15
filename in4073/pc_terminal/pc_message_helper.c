@@ -4,6 +4,7 @@
 #include "pc_message_helper.h"
 #include "../message/message.h"
 #include "../message/crc.h"
+#include "joystick.h"
 
 void send_message(message_t * message, uint8_t message_len)
 {
@@ -87,8 +88,22 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 	{
 		case '0':
 		case '1':
+		{
+			msg_type = MSG_SET_MODE;
+			data.set_mode_data.mode = c - '0';
+			retval = c - '0';
+			data_len = sizeof(data.set_mode_data);
+			break;
+		}
 		case '2':
 		{
+			// first check if joystick is in 'zero' position
+			if (!is_joystick_zero())
+			{
+				printf("Set joystick into zero position\n");
+				return retval;
+			}
+
 			msg_type = MSG_SET_MODE;
 			data.set_mode_data.mode = c - '0';
 			retval = c - '0';
@@ -99,16 +114,6 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 		{
 			msg_type = MSG_TERMINATE;
 			data_len = 0;
-			break;
-		}
-		case 'a':
-		{
-			msg_type = MSG_INPUT_DATA;
-			data.input_data.lift = 10;
-			data.input_data.roll = 20;
-			data.input_data.pitch = 30;
-			data.input_data.yaw = 40;
-			data_len = sizeof(data.input_data);
 			break;
 		}
 		default:

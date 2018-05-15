@@ -88,7 +88,6 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer, 
 	uint8_t buffer_len, bool * demo_done)
 {
-	static uint8_t reply_counter = 0; // TODO remove this
 	message_t * message_ptr = (message_t *) receive_buffer;
 	uint8_t retval = 0xFF;
 
@@ -100,14 +99,8 @@ uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer,
 			printf("Received set mode command, mode: %d\n", data->mode);
 			retval = data->mode;
 
-			// TODO remove reply counter
-			reply_counter++;
-			if (reply_counter == 3) 
-			{
-				// Now send mode update back to the pc
-				send_mode_update(send_buffer, data->mode);
-				reply_counter = 0;
-			}
+			// Now send mode update back to the pc
+			send_mode_update(send_buffer, data->mode);
 
 			break;
 		}
@@ -121,7 +114,7 @@ uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer,
 			pitchdata = data->pitch;
 			yawdata = data->yaw;
 
-			printf("updating input data\n");
+			// printf("updating input data\n");
 			break;
 		}
 		case MSG_TERMINATE:

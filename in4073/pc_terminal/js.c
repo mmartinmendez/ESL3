@@ -15,32 +15,6 @@ static int fd;
 static struct js_event js;
 
 
-/* time
- */
-#include <time.h>
-#include <assert.h>
-unsigned int    mon_time_ms(void)
-{
-        unsigned int    ms;
-        struct timeval  tv;
-        struct timezone tz;
-
-        gettimeofday(&tv, &tz);
-        ms = 1000 * (tv.tv_sec % 65); // 65 sec wrap around
-        ms = ms + tv.tv_usec / 1000;
-        return ms;
-}
-
-void    mon_delay_ms(unsigned int ms)
-{
-        struct timespec req, rem;
-
-        req.tv_sec = ms / 1000;
-        req.tv_nsec = 1000000 * (ms % 1000);
-        assert(nanosleep(&req,&rem) == 0);
-}
-
-
 #define JS_DEV	"/dev/input/js1"
 
 void init_joystick ()
@@ -55,17 +29,9 @@ void init_joystick ()
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
-void read_joystick (int axis[], int button[])
+void read_joystick (int8_t axis_small[], int button[])
 {
-	#if 0
-	unsigned int	t;
-
-	/* simulate work
-	 */
-	mon_delay_ms(10);
-	t = mon_time_ms();
-	#endif
-
+	
 	/* check up on JS
 	 */
 	while (read(fd, &js, sizeof(struct js_event)) == 
@@ -79,10 +45,17 @@ void read_joystick (int axis[], int button[])
 				button[js.number] = js.value;
 				break;
 			case JS_EVENT_AXIS:
-				axis[js.number] = js.value;
+				axis_small[js.number] = js.value / 256;
+				if (js.number == 3) axis_small[3] = - axis_small[3]; // invert lift
 				break;
 		}
 	}
+
+	// axis_small[0] = axis[0] / 256;
+	// axis_small[1] = axis[1] / 256;
+	// axis_small[2] = axis[2] / 256;
+	// axis_small[3] = -axis[3] / 256; // invert lift
+
 	if (errno != EAGAIN) {
 		perror("\njs: error reading (EAGAIN)");
 		exit (1);
@@ -100,4 +73,13 @@ void read_joystick (int axis[], int button[])
 		printf("%d ",button[i]);
 	}
 	#endif
+}
+
+bool is_joystick_zero()
+{
+	return (
+		(axis_small[0] == 0) &&
+		(axis_small[1] == 0) && 
+		(axis_small[2] == 0) &&
+		(axis_small[3] == -127));
 }

@@ -29,6 +29,7 @@
  * Vojtech Pavlik, Ucitelska 1576, Prague 8, 182 00 Czech Republic
  */
 
+#include <stdbool.h>
 #include <asm/types.h>
 #include <linux/input.h>
 
@@ -125,7 +126,12 @@ struct JS_DATA_SAVE_TYPE {
 	struct JS_DATA_TYPE JS_CORR;
 };
 
+// globals
+int8_t axis_small[6];
+int	button[12];
+
 void init_joystick();
-void read_joystick (int axis[], int button[]);
+void read_joystick (int8_t axis_small[], int button[]);
+bool is_joystick_zero();
 
 #endif /* _LINUX_JOYSTICK_H */

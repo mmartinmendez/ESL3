@@ -17,11 +17,11 @@
  *----------------------------------------------------------------
  */
 
+// #define USE_GUI
+
 int main(int argc, char **argv)
 {
-	// current joystick readings
-	int	axis[6];
-	int	button[12];
+
 
 	// variables for sending/receiving messages
 	char c;
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	// debug variables
 	// uint8_t counter = 0;
 
-	memset(axis,0,sizeof(axis));
+	memset(axis_small,0,sizeof(axis_small));
 	memset(button,0,sizeof(button));
 
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
@@ -61,18 +61,44 @@ int main(int argc, char **argv)
 	// init joystick time
   	clock_gettime(CLOCK_MONOTONIC, &t_joystick);
 
+#ifdef USE_GUI
   	// start GUI thread
   	pthread_t gui_thread;
   	
-	// if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
-	// {
- //    	perror("ERROR creating jsfunc thread.");
-	// }
+	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
+	{
+    	perror("ERROR creating jsfunc thread.");
+	}
+#endif
 
 	// send & receive
 	for (;;)
 	{
   		clock_gettime(CLOCK_MONOTONIC, &t_now);
+
+  		if (compare_time (&t_now, &t_joystick))
+		{
+			read_joystick(axis_small, button);
+			
+			#ifdef USE_GUI
+			// update ui
+			// update_gui(axis, button);
+			#endif
+
+			// note: convert int16 to int8
+			send_buffer.data.input_data.roll = axis_small[0];
+			send_buffer.data.input_data.pitch = axis_small[1];
+			send_buffer.data.input_data.yaw = axis_small[2];
+			send_buffer.data.input_data.lift = axis_small[3];
+
+
+			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
+
+			t_joystick = add_time_millis(&t_now, 10);
+
+			printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+
+		}
 
 		if ((c = term_getchar_nb()) != -1)
 		{
@@ -82,6 +108,7 @@ int main(int argc, char **argv)
 				t_message_expect = add_time_millis(&t_now, 200);
 			}
 		}
+
 		if ((c = rs232_getchar_nb()) != -1)
 		{
 			uint8_t message_len;
@@ -113,34 +140,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (compare_time (&t_now, &t_joystick))
-		{
-			int8_t axis_small[6];
-
-			axis_small[0] = axis[0] / 256;
-			axis_small[1] = axis[1] / 256;
-			axis_small[2] = axis[2] / 256;
-			axis_small[3] = axis[3] / 256;
-
-			read_joystick(axis, button);
-			
-			// update ui
-			// update_gui(axis, button);
-
-			// printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
-
-			// note: convert int16 to int8
-			send_buffer.data.input_data.roll = axis_small[0];
-			send_buffer.data.input_data.pitch = axis_small[1];
-			send_buffer.data.input_data.yaw = axis_small[2];
-			send_buffer.data.input_data.lift = axis_small[3];
-
-			//debug_printf("Sending before build_and_send_message, counter: %d\n", counter++);
-
-			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
-
-			t_joystick = add_time_millis(&t_now, 10);
-		}
+		debug_printf("Checking counter: %d\n", counter++);
 	}
 
 	term_exitio();
