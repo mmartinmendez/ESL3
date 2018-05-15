@@ -35,6 +35,12 @@ GtkWidget *label_10;
 GtkWidget *label_11;
 GtkWidget *label_12;
 
+GtkWidget *entry_1;
+GtkWidget *entry_2;
+GtkWidget *entry_3;
+GtkWidget *entry_4;
+GtkWidget *entry_5;
+
 int	axis[6];
 int	button[12];
 
@@ -89,9 +95,9 @@ float doublemaxvalue = 65534;
 	unsigned int	t, i;
 
 	if ((fd = open(JS_DEV, O_RDONLY)) < 0) {
-		perror("jstest");
+		perror("Please connect the joystick\n");
 		exit(1);
-	}
+	} 
 
 	/* non-blocking mode
 	 */
@@ -306,48 +312,48 @@ yaw = axis[2]/maxvalue;
 if (horizontal <= 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0 - horizontal);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), 0);
-	usleep(1000);
+	usleep(10000);
 	}
 if (horizontal > 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), horizontal);
-	usleep(1000);
+	usleep(10000);
 	}
 if (vertical <= 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0 - vertical);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), 0);
-	usleep(1000);
+	usleep(10000);
 	}
 if (vertical > 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), vertical);
-	usleep(1000);
+	usleep(10000);
 	}
 if (yaw <= 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0 - yaw);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), 0);
-	usleep(1000);
+	usleep(10000);
 	}
 if (yaw > 0)
 	{
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0);
-	usleep(1000);
+	usleep(10000);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw);
-	usleep(1000);
+	usleep(10000);
 	}
 
 gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_power), power);
-	usleep(1000);
+	usleep(10000);
 
 	}
 	printf("\n<exit>\n");
@@ -367,6 +373,50 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
     	return TRUE;
 	}
 
+static void update_values(GtkWidget *widget, gpointer data)
+	{
+	const gchar *entry1;
+	entry1 = gtk_entry_get_text (GTK_ENTRY(entry_1));
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+
+static void mode_1(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_2(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_3(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_4(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_5(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_6(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+static void mode_7(GtkWidget *widget, gpointer data)
+	{
+	printf("Hello!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	return;
+	}
+
 static void destroy(GtkWidget *widget, gpointer data)
 	{
     	gtk_main_quit ();
@@ -377,12 +427,23 @@ int main(int argc, char* argv[])
     	GtkWidget *entry;
     	GtkWidget *window;
 	GtkWidget *button;
+	GtkWidget *update_button;
 	GtkWidget *grid;
 
 	GtkWidget *bar_1;
 	GtkWidget *bar_2;
 	GtkWidget *bar_3;
 	GtkWidget *bar_4;
+
+
+	GSList *group;
+	GtkWidget *radio_1;
+	GtkWidget *radio_2;
+	GtkWidget *radio_3;
+	GtkWidget *radio_4;
+	GtkWidget *radio_5;
+	GtkWidget *radio_6;
+	GtkWidget *radio_7;
 
 	//initial values
 	float front = 0;
@@ -399,12 +460,7 @@ if(pthread_create (&js_check, NULL, jsfunc, (void *) argv))
 	{
     	perror("ERROR creating jsfunc thread.");
 	}
-/*
-if(pthread_create (&input_check, NULL, func, (void *) argv))
-	{
-    	perror("ERROR creating func thread.");
-	}
-*/
+
     	gtk_init (&argc, &argv);
 
 	int vposition = 1;
@@ -517,10 +573,63 @@ if(pthread_create (&input_check, NULL, func, (void *) argv))
 	gtk_progress_bar_set_text (GTK_PROGRESS_BAR (bar_4), "Motor 4");
 	gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (bar_4), TRUE);
 
-	//create button
+	//create entries
+	entry_1 = gtk_entry_new ();
+	gtk_entry_set_text(GTK_ENTRY(entry_1), "A");
+	gtk_grid_attach (GTK_GRID (grid), entry_1, vposition + 5, hposition + 4, 1, 1);
+	entry_2 = gtk_entry_new ();
+	gtk_entry_set_text(GTK_ENTRY(entry_2), "B");
+	gtk_grid_attach (GTK_GRID (grid), entry_2, vposition + 5, hposition + 5, 1, 1);
+	entry_3 = gtk_entry_new ();
+	gtk_entry_set_text(GTK_ENTRY(entry_3), "C");
+	gtk_grid_attach (GTK_GRID (grid), entry_3, vposition + 5, hposition + 6, 1, 1);
+	entry_4 = gtk_entry_new ();
+	gtk_entry_set_text(GTK_ENTRY(entry_4), "D");
+	gtk_grid_attach (GTK_GRID (grid), entry_4, vposition + 5, hposition + 7, 1, 1);
+	entry_5 = gtk_entry_new ();
+	gtk_entry_set_text(GTK_ENTRY(entry_5), "E");
+	gtk_grid_attach (GTK_GRID (grid), entry_5, vposition + 5, hposition + 8, 1, 1);
+
+	//create quit button
   	button = gtk_button_new_with_label ("Quit");
   	g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
 	gtk_grid_attach (GTK_GRID (grid), button, vposition + 4, hposition + 2, 1, 1);
+
+	//create update values button
+  	update_button = gtk_button_new_with_label ("Update\nvalues");
+  	g_signal_connect_swapped (update_button, "clicked", G_CALLBACK (update_values), window);
+	gtk_grid_attach (GTK_GRID (grid), update_button, vposition + 6, hposition + 6, 1, 1);
+
+	//create radio buttons
+	radio_1 = gtk_radio_button_new_with_label (NULL, "Mode 1");
+	//group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (radio_1));
+	gtk_grid_attach (GTK_GRID (grid), radio_1, vposition + 7, hposition + 4, 1, 1);
+	radio_2 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 2");
+	gtk_grid_attach (GTK_GRID (grid), radio_2, vposition + 7, hposition + 5, 1, 1);
+	radio_3 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 3");
+	gtk_grid_attach (GTK_GRID (grid), radio_3, vposition + 7, hposition + 6, 1, 1);
+	radio_4 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 4");
+	gtk_grid_attach (GTK_GRID (grid), radio_4, vposition + 7, hposition + 7, 1, 1);
+	radio_5 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 5");
+	gtk_grid_attach (GTK_GRID (grid), radio_5, vposition + 7, hposition + 8, 1, 1);
+	radio_6 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 6");
+	gtk_grid_attach (GTK_GRID (grid), radio_6, vposition + 7, hposition + 9, 1, 1);
+	radio_7 = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_1), "Mode 7");	
+	gtk_grid_attach (GTK_GRID (grid), radio_7, vposition + 7, hposition + 10, 1, 1);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_1), TRUE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_2), FALSE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_3), FALSE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_4), FALSE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_5), FALSE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_6), FALSE);
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_7), FALSE);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_1), "toggled", G_CALLBACK (mode_1), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_2), "toggled", G_CALLBACK (mode_2), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_3), "toggled", G_CALLBACK (mode_3), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_4), "toggled", G_CALLBACK (mode_4), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_5), "toggled", G_CALLBACK (mode_5), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_6), "toggled", G_CALLBACK (mode_6), window);
+	g_signal_connect (GTK_TOGGLE_BUTTON (radio_7), "toggled", G_CALLBACK (mode_7), window);
 
 	label_1 = gtk_label_new ("  Button 1  \n      OFF");
 	label_2 = gtk_label_new ("  Button 2  \n      OFF");
