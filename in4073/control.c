@@ -78,7 +78,7 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 			// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right
 			// all normalized based on liftdata
 
-			if(liftdata == 0 && pitchdata == 0 && rolldata == 0 && yawdata == 0) {
+			if(liftdata == -127 && pitchdata == 0 && rolldata == 0 && yawdata == 0) {
 				ae[0] =0;
 				ae[1] =0;
 				ae[2] =0;
