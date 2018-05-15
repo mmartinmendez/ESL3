@@ -52,7 +52,6 @@ int main(void)
 		if (rx_queue.count)
 		{
 			c = dequeue(&rx_queue);
-			printf("%X\n", c); // DEBUG PRINT - REMOVE LATER
 
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, receive_buffer, "DRONE");
@@ -77,7 +76,7 @@ int main(void)
 			read_baro();
 
 			// printf("%10ld | ", get_time_us());
-			// printf("%3d %3d %3d %3d | ",ae[0],ae[1],ae[2],ae[3]);
+			printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
 			// printf("%6d %6d %6d | ", phi, theta, psi);
 			// printf("%6d %6d %6d | ", sp, sq, sr);
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);

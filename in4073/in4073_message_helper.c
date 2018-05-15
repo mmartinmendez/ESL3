@@ -3,6 +3,7 @@
 #include "in4073_message_helper.h"
 #include "message/message.h"
 #include "message/crc.h"
+#include "in4073.h"
 
 void echo_message(uint8_t * message, uint8_t message_len)
 {
@@ -113,8 +114,14 @@ uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer,
 		case MSG_INPUT_DATA:
 		{
 			input_data_t * data = (input_data_t*) &(message_ptr->data);
-			printf("Received input command, lift: %d, roll: %d, pitch: %d, yaw: %d\n", 
-				data->lift, data->roll, data->pitch, data->yaw);
+			// printf("Received input command, lift: %d, roll: %d, pitch: %d, yaw: %d\n", 
+				// data->lift, data->roll, data->pitch, data->yaw);
+			liftdata = data->lift;
+			rolldata = data->roll;
+			pitchdata = data->pitch;
+			yawdata = data->yaw;
+
+			printf("updating input data\n");
 			break;
 		}
 		case MSG_TERMINATE:

@@ -37,6 +37,7 @@ bool demo_done;
 
 // Control
 int16_t motor[4],ae[4];
+int8_t liftdata, rolldata, pitchdata, yawdata;
 void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t bat_volt);
 
 // Timers

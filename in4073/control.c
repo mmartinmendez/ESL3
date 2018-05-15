@@ -30,9 +30,9 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 
 	// ae[0] = xxx, ae[1] = yyy etc etc
 
-	if(bat_volt < 10.5){
-		current_mode = PANIC_MODE;
-	}
+	// if(bat_volt < 10.5){
+	// 	current_mode = PANIC_MODE;
+	// }
 
 	switch (current_mode)
 	{
@@ -48,10 +48,10 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 
 		case PANIC_MODE:
 		{
-			ae[0] = 200; //tweak value to smallest hover value
-			ae[1] = 200;
-			ae[2] = 200;
-			ae[3] = 200;
+			ae[0] = 450; //tweak value to smallest hover value
+			ae[1] = 450;
+			ae[2] = 450;
+			ae[3] = 450;
 			while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
 			{
 				ae[0] -= 20;
@@ -69,11 +69,6 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 		case MANUAL_MODE:
 		{
 			//manual mode
-			int8_t liftdata = data->lift;
-			int8_t rolldata = data->roll;
-			int8_t pitchdata = data->pitch;
-			int8_t yawdata = data->yaw;
-			int factor = 1;
 
 			// TO-DO mapping from input to usable values
 			// i.e rolldata from -50 -> 50,  [-50, 0] roll left, [0, 50] roll right

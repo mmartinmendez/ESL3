@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	uint8_t retval = 0;
 
 	// debug variables
-	uint8_t counter = 0;
+	// uint8_t counter = 0;
 
 	memset(axis,0,sizeof(axis));
 	memset(button,0,sizeof(button));
@@ -64,10 +64,10 @@ int main(int argc, char **argv)
   	// start GUI thread
   	pthread_t gui_thread;
   	
-	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
-	{
-    	perror("ERROR creating jsfunc thread.");
-	}
+	// if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
+	// {
+ //    	perror("ERROR creating jsfunc thread.");
+	// }
 
 	// send & receive
 	for (;;)
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		{
 			uint8_t message_len;
 
-			debug_printf(c);
+			putchar(c);
 
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 			// update ui
 			// update_gui(axis, button);
 
-			printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+			// printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
 
 			// note: convert int16 to int8
 			send_buffer.data.input_data.roll = axis_small[0];
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 			send_buffer.data.input_data.yaw = axis_small[2];
 			send_buffer.data.input_data.lift = axis_small[3];
 
-			debug_printf("Sending before build_and_send_message, counter: %d\n", counter++);
+			//debug_printf("Sending before build_and_send_message, counter: %d\n", counter++);
 
 			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
 
