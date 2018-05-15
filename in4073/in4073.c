@@ -49,6 +49,7 @@ int main(void)
 
 	while (!demo_done)
 	{
+
 		if (rx_queue.count)
 		{
 			c = dequeue(&rx_queue);
@@ -65,8 +66,17 @@ int main(void)
 				{
 					current_mode = retval;
 				}
+
+				get_dmp_data();
+				run_filters_and_control(current_mode, bat_volt);
 			}	
 		} 
+
+		if (check_sensor_int_flag()) 
+		{
+			get_dmp_data();
+			run_filters_and_control(current_mode, bat_volt);
+		}
 
 		if (check_timer_flag()) 
 		{
@@ -76,7 +86,7 @@ int main(void)
 			read_baro();
 
 			// printf("%10ld | ", get_time_us());
-			printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
+			// printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
 			// printf("%6d %6d %6d | ", phi, theta, psi);
 			// printf("%6d %6d %6d | ", sp, sq, sr);
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
@@ -84,14 +94,7 @@ int main(void)
 			clear_timer_flag();
 		}
 
-		if (check_sensor_int_flag()) 
-		{
-			get_dmp_data();
-			input_data_t data;
-			memset(&data,0,sizeof(data));
-		
-			run_filters_and_control(&data, current_mode, bat_volt);
-		}
+
 	}	
 
 	printf("\n\t Goodbye \n\n");

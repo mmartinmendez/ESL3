@@ -20,7 +20,7 @@ void update_motors(void)
 	motor[3] = ae[3];
 }
 
-void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t bat_volt)
+void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 {
 
 	int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
@@ -111,8 +111,6 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 
 		case YAW_CONTROL_MODE:
 		{
-			int8_t liftdata = data->lift;
-			int8_t yawdata = data->yaw;
 
 			ae[0] = liftdata;
 			ae[1] = liftdata;
