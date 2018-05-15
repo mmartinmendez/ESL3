@@ -1,6 +1,4 @@
 # Compiler / components folders
-components/
-gcc-arm-none-eabi/
 in4073/_build/
 
 # Sublime project
