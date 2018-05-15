@@ -13,7 +13,7 @@
 #include "in4073.h"
 
 void update_motors(void)
-{					
+{
 	motor[0] = ae[0];
 	motor[1] = ae[1];
 	motor[2] = ae[2];
@@ -28,7 +28,7 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode)
 	// ae[0] = xxx, ae[1] = yyy etc etc
 
 	//manual mode
-	
+
 
 	int16_t liftdata = data->lift;
 	int16_t rolldata = data->roll;
@@ -38,17 +38,21 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode)
 	// TO-DO mapping from input to usable values
 	// i.e rolldata from -50 -> 50,  [-50, 0] roll left, [0, 50] roll right
 	// i.e pitchdata from -50 -> 50,  [-50, 0] pitch back, [0, 50] pitch forward
-	// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right 
+	// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right
 	// all normalized based on liftdata
 
-	ae[0] = liftdata + pitchdata - yawdata;
+	ae[0] = (liftdata + pitchdata - yawdata + 127 * 3) * 2;
 	if (ae[0] < 0) ae[0] = 0;
-	ae[1] = liftdata - rolldata + yawdata;
+	else (ae[0] > 1000) ae[0] = 1000;
+	ae[1] = (liftdata - rolldata + yawdata + 127 * 3) * 2;
 	if (ae[1] < 0) ae[1] = 0;
-	ae[2] = liftdata - pitchdata - yawdata;
+	else (ae[1] > 1000) ae[1] = 1000;
+	ae[2] = (liftdata - pitchdata - yawdata + 127 * 3) * 2;
 	if (ae[2] < 0) ae[2] = 0;
-	ae[3] = liftdata + rolldata + yawdata;
+	else (ae[2] > 1000) ae[2] = 1000;
+	ae[3] = (liftdata + rolldata + yawdata + 127 * 3) * 2;
 	if (ae[3] < 0) ae[3] = 0;
+	else (ae[3] > 1000) ae[3] = 1000;
 
 	update_motors();
 }
