@@ -23,6 +23,7 @@
 #include "message/crc.h"
 #include <math.h>
 #include <string.h>
+#include "in4073_message_helper.h"
 
 #define RED		22
 #define YELLOW		24

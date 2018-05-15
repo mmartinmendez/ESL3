@@ -34,7 +34,7 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 		current_mode = PANIC_MODE;
 	}
 
-	switch ((msg_type_e) current_mode)
+	switch (current_mode)
 	{
 		case SAFE_MODE:
 		{
@@ -105,7 +105,8 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 			cal_say = say;
 			cal_saz = saz;
 
-			//send_calibration_data(cal_phi,cal_theta,cal_psi,cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
+			send_calibration_data(&send_buffer, cal_phi,cal_theta,cal_psi,
+				cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 		break;
 		}
 
