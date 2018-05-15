@@ -38,6 +38,19 @@ typedef enum
 
 } msg_type_e;
 
+typedef enum 
+{
+	SAFE_MODE,
+	PANIC_MODE,
+	MANUAL_MODE,
+	CALIBRATION_MODE,
+	YAW_CONTROL_MODE,
+	FULL_CONTROL_MODE,
+	RAW_MODE,
+	HEIGHT_CONTROL_MODE,
+	WIRELESS_MODE
+} mode_type_e;
+
 typedef struct 
 {
 	uint8_t mode;
@@ -61,6 +74,12 @@ typedef struct
 	int16_t phi;
 	int16_t theta;
 	int16_t psi;
+	int16_t sp;
+	int16_t sq;
+	int16_t sr;
+	int16_t sax;
+	int16_t say;
+	int16_t saz;
 } calibration_data_t; // Drone -> PC
 
 typedef struct 

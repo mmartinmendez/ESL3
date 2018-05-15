@@ -15,107 +15,6 @@
 
 #include "in4073.h"
 
-void echo_message(uint8_t * message, uint8_t message_len)
-{
-	for(int i = 0; i < message_len; i++)
-	{
-		printf("%c", *(message++));
-	}
-
-	printf("\n");
-}
-
-void send_message(message_t * message, uint8_t message_len)
-{
-	uint8_t * message_ptr = (uint8_t *) message;
-
-	putchar(START_BYTE);
-
-	// send data over uart
-	for (int i = 0; i < message_len; i++)
-	{
-		// check for special bytes, and add escaping where necessary
-		if(*(message_ptr) == START_BYTE ||
-			*(message_ptr) == END_BYTE ||
-			*(message_ptr) == ESCAPE )
-		{
-			putchar(ESCAPE);
-			putchar(*(message_ptr++) ^ 0x20);
-		} 
-		else
-		{
-			putchar(*(message_ptr++));
-		}
-
-	}
-
-	putchar(END_BYTE);
-	putchar('\n'); // add newline to flush send buffer
-}
-
-void send_mode_update(uint8_t mode)
-{
-	mode_update_t data;
-	uint8_t message_len;
-
-	data.mode = mode;
-	message_len = build_message(MSG_MODE_UPDATE, (uint8_t *) &data, 
-		sizeof(data), &send_buffer);
-
-	if (message_len > 0)
-	{
-		send_message(&send_buffer, message_len);
-	}
-}
-
-uint8_t handle_message(uint8_t * buffer, uint8_t buffer_len)
-{
-	static uint8_t reply_counter = 0; // TODO remove this
-	message_t * message_ptr = (message_t *) buffer;
-	uint8_t retval = 0xFF;
-
-	switch ((msg_type_e) message_ptr->message_type)
-	{
-		case MSG_SET_MODE:
-		{
-			set_mode_data_t * data = (set_mode_data_t*) &(message_ptr->data);
-			printf("Received set mode command, mode: %d\n", data->mode);
-			retval = data->mode;
-
-			// TODO remove reply counter
-			reply_counter++;
-			if (reply_counter == 3) 
-			{
-				// Now send mode update back to the pc
-				send_mode_update(data->mode);
-				reply_counter = 0;
-			}
-
-			break;
-		}
-		case MSG_INPUT_DATA:
-		{
-			input_data_t * data = (input_data_t*) &(message_ptr->data);
-			printf("Received input command, lift: %d, roll: %d, pitch: %d, yaw: %d\n", 
-				data->lift, data->roll, data->pitch, data->yaw);
-			break;
-		}
-		case MSG_TERMINATE:
-		{
-			demo_done = true;
-			break;
-		}
-
-		default:
-		{
-			printf("Received unsupported msg_type: %d\n", message_ptr->message_type);
-			break;
-		}
-	}
-
-	return retval;
-}
-
 /*------------------------------------------------------------------
  * main -- everything you need is here :)
  *------------------------------------------------------------------
@@ -131,11 +30,12 @@ int main(void)
 	imu_init(true, 100);	
 	baro_init();
 	spi_flash_init();
+	flash_chip_erase();
 	ble_init();
 	crc_init();
 
-	// variables for input buffer
-	static uint8_t buffer[sizeof(message_t)];
+	// variables for input receive_buffer
+	static uint8_t receive_buffer[sizeof(message_t)];
 	static bool is_escaped = false;
 	static uint8_t msg_index;
 
@@ -155,12 +55,13 @@ int main(void)
 			printf("%X\n", c); // DEBUG PRINT - REMOVE LATER
 
 			message_len = parse_message(c, &msg_index, 
-				&is_escaped, buffer, "DRONE");
+				&is_escaped, receive_buffer, "DRONE");
 
 			if (message_len > 0)
 			{
 				// we received an end-byte, now handle message
-				retval = handle_message(buffer, message_len); 		
+				retval = handle_message(&send_buffer, receive_buffer, 
+					message_len, &demo_done); 		
 				if (retval != 0xFF)
 				{
 					current_mode = retval;
@@ -190,7 +91,7 @@ int main(void)
 			input_data_t data;
 			memset(&data,0,sizeof(data));
 		
-			run_filters_and_control(&data, current_mode);
+			run_filters_and_control(&data, current_mode, bat_volt);
 		}
 	}	
 

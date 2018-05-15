@@ -23,6 +23,7 @@
 #include "message/crc.h"
 #include <math.h>
 #include <string.h>
+#include "in4073_message_helper.h"
 
 #define RED		22
 #define YELLOW		24
@@ -32,9 +33,11 @@
 
 bool demo_done;
 
+// void send_calibration_data(	int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz);
+
 // Control
 int16_t motor[4],ae[4];
-void run_filters_and_control(input_data_t * data, uint8_t current_mode);
+void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t bat_volt);
 
 // Timers
 #define TIMER_PERIOD	50 //50ms=20Hz (MAX 23bit, 4.6h)
