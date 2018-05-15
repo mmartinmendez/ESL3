@@ -70,24 +70,39 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 		{
 			//manual mode
 
+			int16_t updated[4];
+
 			// TO-DO mapping from input to usable values
 			// i.e rolldata from -50 -> 50,  [-50, 0] roll left, [0, 50] roll right
 			// i.e pitchdata from -50 -> 50,  [-50, 0] pitch back, [0, 50] pitch forward
 			// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right
 			// all normalized based on liftdata
 
-			ae[0] = (liftdata + pitchdata - yawdata + 127 * 2) * 2;
-			if (ae[0] < 254) ae[0] = 254;
-			else if(ae[0] > 750) ae[0] = 750;
-			ae[1] = (liftdata - rolldata + yawdata + 127 * 2) * 2;
-			if (ae[1] < 254) ae[1] = 254;
-			else if(ae[1] > 750) ae[1] = 750;
-			ae[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
-			if (ae[2] < 254) ae[2] = 254;
-			else if(ae[2] > 750) ae[2] = 750;
-			ae[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
-			if (ae[3] < 254) ae[3] = 254;
-			else if(ae[3] > 750) ae[3] = 750;
+			if(liftdata == 0 && pitchdata == 0 && rolldata == 0 && yawdata == 0) {
+				ae[0] =0;
+				ae[1] =0;
+				ae[2] =0;
+				ae[3] =0;
+			}
+			else {
+				ae[0] = (liftdata + pitchdata - yawdata + 127 * 2) * 2;
+				if (ae[0] < 254) ae[0] = 254;
+				else if(ae[0] > 750) ae[0] = 750;
+				ae[1] = (liftdata - rolldata + yawdata + 127 * 2) * 2;
+				if (ae[1] < 254) ae[1] = 254;
+				else if(ae[1] > 750) ae[1] = 750;
+				ae[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
+				if (ae[2] < 254) ae[2] = 254;
+				else if(ae[2] > 750) ae[2] = 750;
+				ae[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
+				if (ae[3] < 254) ae[3] = 254;
+				else if(ae[3] > 750) ae[3] = 750;
+
+				updated[0] = (liftdata + pitchdata - yawdata + 127 * 2) * 2;
+				updated[1] = (liftdata - rolldata + yawdata + 127 * 2) * 2;
+				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
+				updated[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
+			}
 
 		break;
 		}
