@@ -1,8 +1,13 @@
 # Compiler / components folders
+./components
+./gcc-arm-none-eabi
 in4073/_build/
 
 # Sublime project
 *.sublime-workspace
+
+# Mac file
+.DS_Store
 
 # Prerequisites
 *.d
