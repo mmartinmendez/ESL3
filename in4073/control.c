@@ -81,18 +81,18 @@ void run_filters_and_control(input_data_t * data, uint8_t current_mode, uint16_t
 			// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right
 			// all normalized based on liftdata
 
-			ae[0] = (liftdata + pitchdata - yawdata + 127 * 3) * 2;
-			if (ae[0] < 0) ae[0] = 0;
-			else (ae[0] > 1000) ae[0] = 1000;
-			ae[1] = (liftdata - rolldata + yawdata + 127 * 3) * 2;
-			if (ae[1] < 0) ae[1] = 0;
-			else (ae[1] > 1000) ae[1] = 1000;
-			ae[2] = (liftdata - pitchdata - yawdata + 127 * 3) * 2;
-			if (ae[2] < 0) ae[2] = 0;
-			else (ae[2] > 1000) ae[2] = 1000;
-			ae[3] = (liftdata + rolldata + yawdata + 127 * 3) * 2;
-			if (ae[3] < 0) ae[3] = 0;
-			else (ae[3] > 1000) ae[3] = 1000;
+			ae[0] = (liftdata + pitchdata - yawdata + 127 * 2) * 2;
+			if (ae[0] < 254) ae[0] = 254;
+			else (ae[0] > 750) ae[0] = 750;
+			ae[1] = (liftdata - rolldata + yawdata + 127 * 2) * 2;
+			if (ae[1] < 254) ae[1] = 254;
+			else (ae[1] > 750) ae[1] = 750;
+			ae[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
+			if (ae[2] < 254) ae[2] = 254;
+			else (ae[2] > 750) ae[2] = 750;
+			ae[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
+			if (ae[3] < 254) ae[3] = 254;
+			else (ae[3] > 750) ae[3] = 750;
 
 		break;
 		}
