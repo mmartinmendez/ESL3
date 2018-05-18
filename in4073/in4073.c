@@ -67,14 +67,14 @@ int main(void)
 					current_mode = retval;
 				}
 
-				get_dmp_data();
+				//get_dmp_data();
 				run_filters_and_control(current_mode, bat_volt);
 			}	
 		} 
 
 		if (check_sensor_int_flag()) 
 		{
-			get_dmp_data();
+			//get_dmp_data();
 			run_filters_and_control(current_mode, bat_volt);
 		}
 
