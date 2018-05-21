@@ -11,6 +11,7 @@
  */
 
 #include "in4073.h"
+#include "math.h"
 
 void update_motors(void)
 {
@@ -48,21 +49,52 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 
 		case PANIC_MODE:
 		{
-			ae[0] = 450; //tweak value to smallest hover value
-			ae[1] = 450;
-			ae[2] = 450;
-			ae[3] = 450;
-			while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
-			{
-				ae[0] -= 20;
-					if (ae[0] < 0) ae[0] = 0;
-				ae[1] -= 20;
-					if (ae[1] < 0) ae[1] = 0;
-				ae[2] -= 20;
-					if (ae[2] < 0) ae[2] = 0;
-				ae[3] -= 20;
-					if (ae[3] < 0) ae[3] = 0;
-			}
+			if(ae[0] != 0 &&  ae[1] != 0 && ae[2] != 0 && ae[3] != 0){
+
+				while(ae[0] != 450 && ae[1] != 450 && ae[2] != 450 && ae[3] != 450){
+	 				 if (ae[0] < 450)
+	 				 {
+	 				 	ae[0] += 1;
+	 				 } else {
+	 				 	ae[0] -= 1;
+	 				 }
+	 				 if (ae[1] < 450)
+	 				 {
+	 				 	ae[1] += 1;
+	 				 } else {
+	 				 	ae[1] -= 1;
+	 				 }
+	 				 if (ae[2] < 450)
+	 				 {
+	 				 	ae[2] += 1;
+	 				 } else {
+	 				 	ae[2] -= 1;
+	 				 }
+	 				 if (ae[3] < 450)
+	 				 {
+	 				 	ae[3] += 1;
+	 				 } else {
+	 				 	ae[3] -= 1;
+	 				 }
+				}
+
+				ae[0] = 450;
+				ae[1] = 450;
+				ae[2] = 450;
+				ae[3] = 450;
+
+				while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
+				{
+					ae[0] -= 1;
+						if (ae[0] < 0) ae[0] = 0;
+					ae[1] -= 1;
+						if (ae[1] < 0) ae[1] = 0;
+					ae[2] -= 1;
+						if (ae[2] < 0) ae[2] = 0;
+					ae[3] -= 1;
+						if (ae[3] < 0) ae[3] = 0;
+				}
+		}
 		break;
 		}
 
@@ -134,27 +166,42 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 		case YAW_CONTROL_MODE:
 		{
 
-			ae[0] = liftdata;
-			ae[1] = liftdata;
-			ae[2] = liftdata;
-			ae[3] = liftdata;
-			int control_factor = 1; //not sure if these values are anything near correct
+				ae[0] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
+				ae[1] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
+				ae[2] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
+				ae[3] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
+
+				if (ae[0] < 254) ae[0] = 254;
+				else if(ae[0] > 450) ae[0] = 450;
+				if (ae[1] < 254) ae[1] = 254;
+				else if(ae[1] > 450) ae[1] = 450;
+				if (ae[2] < 254) ae[2] = 254;
+				else if(ae[2] > 450) ae[2] = 450;
+				if (ae[3] < 254) ae[3] = 254;
+				else if(ae[3] > 450) ae[3] = 450;
+
+			
+			int control_factor = 3; //should be adjustable by keyboard
+
+            int Desired_Yaw_Angle = floor(yawdata/180); // in degrees
+            Desired_Yaw_Angle =  floor(Desired_Yaw_Angle/180 * M_PI); // in rad
+            int Eps = Desired_Yaw_Angle - psi; //can we use psi for this, or is it sr? 
+
 			while(1){
-				if(yawdata - sr > 10){ //not sure if these values are anything near correct
-					ae[0] = ae[0] - control_factor * ae[0];
-					ae[1] = ae[1] + control_factor * ae[1];
-					ae[2] = ae[2] - control_factor * ae[2];
-					ae[3] = ae[3] + control_factor * ae[3];
 
+				if(Eps > 4){ //not sure if these values are anything near correct
+					ae[0] = ae[0] - floor(1/control_factor * ae[0]);
+					ae[1] = ae[1] + floor(1/control_factor * ae[1]);
+					ae[2] = ae[2] - floor(1/control_factor * ae[2]);
+					ae[3] = ae[3] + floor(1/control_factor * ae[3]);
+				} 
+				if(Eps < -5){ //not sure if these values are anything near correct
+					ae[0] = ae[0] + floor(1/control_factor * ae[0]);
+					ae[1] = ae[1] - floor(1/control_factor * ae[1]);
+					ae[2] = ae[2] + floor(1/control_factor * ae[2]);
+					ae[3] = ae[3] - floor(1/control_factor * ae[3]);
 				}
-
-				if(yawdata - sr < -10){ //not sure if these values are anything near correct
-					ae[0] = ae[0] + control_factor * ae[0];
-					ae[1] = ae[1] - control_factor * ae[1];
-					ae[2] = ae[2] + control_factor * ae[2];
-					ae[3] = ae[3] - control_factor * ae[3];
-				}
-				if (yawdata - sr > -10 &&  yawdata - sr < 10){ //not sure if these values are anything near correct
+				if (Eps > -5 &&  Eps < 5){ //not sure if these values are anything near correct
 					ae[0] = ae[0];
 					ae[1] = ae[1];
 					ae[2] = ae[2];
