@@ -26,6 +26,7 @@ void update_motors(void)
 void run_filters_and_control(uint16_t bat_volt)
 {
 	static bool in_panic_mode = false;
+	static bool in_calibration_mode = false;
 	static int setpoint = 0;
 	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
@@ -127,18 +128,24 @@ void run_filters_and_control(uint16_t bat_volt)
 
 		case CALIBRATION_MODE:
 		{
-			cal_phi = phi;
-			cal_theta = theta;
-			cal_psi = psi;
-			cal_sp = sp;
-			cal_sq = sq;
-			cal_sr = sr;
-			cal_sax = sax;
-			cal_say = say;
-			cal_saz = saz;
+			if (!in_calibration_mode)
+			{
+				cal_phi = phi;
+				cal_theta = theta;
+				cal_psi = psi;
+				cal_sp = sp;
+				cal_sq = sq;
+				cal_sr = sr;
+				cal_sax = sax;
+				cal_say = say;
+				cal_saz = saz;
 
-			send_calibration_data(&send_buffer, cal_phi,cal_theta,cal_psi,
-				cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
+				send_calibration_data(&send_buffer, cal_phi,cal_theta,cal_psi,
+					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
+
+				in_calibration_mode = true;
+			}
+
 		break;
 		}
 
@@ -160,32 +167,35 @@ void run_filters_and_control(uint16_t bat_volt)
 				else if(ae[3] > 450) ae[3] = 450;
 
 			
-			int control_factor = 10; //should be adjustable by keyboard
+			int control_factor = 5; //should be adjustable by keyboard
 
-            int Desired_Yaw_Angle = floor(yawdata/180); // in degrees
-            Desired_Yaw_Angle =  floor(Desired_Yaw_Angle/180 * M_PI); // in rad
+            int Desired_Yaw_Angle = yawdata/180; // in degrees
+            Desired_Yaw_Angle =  Desired_Yaw_Angle/180 * M_PI; // in rad
             int real_sr = cal_sr - sr;
             int Eps = Desired_Yaw_Angle - real_sr ; //can we use psi for this, or is it sr? 
 
 				if(Eps > 100){ //not sure if these values are anything near correct
-					ae[0] = ae[0] - floor(1/control_factor * ae[0]);
-					ae[1] = ae[1] + floor(1/control_factor * ae[1]);
-					ae[2] = ae[2] - floor(1/control_factor * ae[2]);
-					ae[3] = ae[3] + floor(1/control_factor * ae[3]);
+					ae[0] = ae[0] - ae[0] / control_factor;
+					ae[1] = ae[1] + ae[1] / control_factor;
+					ae[2] = ae[2] - ae[2] / control_factor;
+					ae[3] = ae[3] + ae[3] / control_factor;
 				} 
 				if(Eps < -100){ //not sure if these values are anything near correct
-					ae[0] = ae[0] + floor(1/control_factor * ae[0]);
-					ae[1] = ae[1] - floor(1/control_factor * ae[1]);
-					ae[2] = ae[2] + floor(1/control_factor * ae[2]);
-					ae[3] = ae[3] - floor(1/control_factor * ae[3]);
+					ae[0] = ae[0] + ae[0] / control_factor;
+					ae[1] = ae[1] - ae[1] / control_factor;
+					ae[2] = ae[2] + ae[2] / control_factor;
+					ae[3] = ae[3] - ae[3] / control_factor;
 				}
 				if (Eps > -100 &&  Eps < 100){ //not sure if these values are anything near correct
 					ae[0] = ae[0];
 					ae[1] = ae[1];
 					ae[2] = ae[2];
 					ae[3] = ae[3];
-					
 				}
+
+				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
+				printf("Eps: %6d | real_sr: %6d| Desired_Yaw_Angle: %6d \n", Eps, real_sr, Desired_Yaw_Angle);
+				// printf("%6d %6d %6d\n", sp, sq, sr);
 		break;
 		}
 
@@ -204,6 +214,10 @@ void run_filters_and_control(uint16_t bat_volt)
 		default:
 		printf("Not a correct mode");
 	}
+
+	// update in_state booleans
+	if(current_mode != PANIC_MODE) in_panic_mode = false;
+	if(current_mode != CALIBRATION_MODE) in_calibration_mode = false;
 
 	update_motors();
 }
