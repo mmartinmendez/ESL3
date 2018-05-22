@@ -128,7 +128,9 @@ struct JS_DATA_SAVE_TYPE {
 
 // globals
 int8_t axis_small[6];
+int8_t axis_offsets[4];
 int	button[12];
+
 
 void init_joystick();
 bool read_joystick (int8_t axis_small[], int button[]);

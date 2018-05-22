@@ -109,7 +109,6 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 // returns mode requested or 0xFF if no mode is set
 uint8_t select_message(uint8_t c, message_t * send_buffer)
 {
-	msg_type_e msg_type;
 	uint8_t retval = 0xFF;
 
 	switch(c)
@@ -118,9 +117,9 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 		case '1': // PANIC MODE
 		case '3': // CALIBRATION MODE
 		{
-			msg_type = MSG_SET_MODE;
 			send_buffer->data.set_mode_data.mode = c - '0';
 			retval = c - '0';
+			build_and_send_message(MSG_SET_MODE, send_buffer);
 			break;
 		}
 		case '2': // MANUAL MODE
@@ -130,102 +129,125 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			if (!is_joystick_zero())
 			{
 				printf("Set joystick into zero position\n");
-				return retval;
 			}
-
-			msg_type = MSG_SET_MODE;
-			send_buffer->data.set_mode_data.mode = c - '0';
-			retval = c - '0';
+			else
+			{
+				send_buffer->data.set_mode_data.mode = c - '0';
+				retval = c - '0';
+				build_and_send_message(MSG_SET_MODE, send_buffer);	
+			}
 			break;
 		}
 		case '9':
 		case 27: // escape character
 		{
-			msg_type = MSG_SET_MODE;
 			send_buffer->data.set_mode_data.mode = TERMINATE_MODE;
 			retval = TERMINATE_MODE;
+			build_and_send_message(MSG_SET_MODE, send_buffer);
 			break;
 		}
 		case 'a': 
 		{
-			// lift up
+			axis_offsets[3] += 1; // lift up
 			break;
 		}
 		case 'z': 
 		{
-			// lift down
+			axis_offsets[3] -= 1; // lift down
 			break;
 		}
+		//TODO verify the arrow values with joystick
 		case 37: // LEFT ARROW 
 		{
-			// roll up
+			axis_offsets[0] += 1; // roll up
 			break;
 		}
 		case 39: // RIGHT ARROW 
 		{
-			// roll down
+			axis_offsets[0] -= 1; // roll down
 			break;
 		}
 		case 38: // UP ARROW 
 		{
-			// pitch down
+			axis_offsets[1] -= 1; // pitch down
 			break;
 		}
 		case 40: // DOWN ARROW 
 		{
-			// pitch down
+			axis_offsets[1] += 1; // pitch up
 			break;
 		}
 		case 'q':
 		{
-			// yaw down
+			axis_offsets[2] -= 1;// yaw down
 			break;
 		}
 		case 'w':
 		{
-			// yaw up
+			axis_offsets[2] += 1;// yaw up
 			break;
 		}
 		case 'u':
 		{
 			// yaw control P up
+			send_buffer->data.set_p_values.select = P_YAW_CONTROL;
+			send_buffer->data.set_p_values.mode = INCREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 		case 'j':
 		{
 			// yaw control P down
+			send_buffer->data.set_p_values.select = P_YAW_CONTROL;
+			send_buffer->data.set_p_values.mode = DECREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 		case 'i':
 		{
 			// roll/pitch control P1 up
+			send_buffer->data.set_p_values.select = P1_PITCH_ROLL_CONTROL;
+			send_buffer->data.set_p_values.mode = INCREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 		case 'k':
 		{
 			// roll/pitch control P1 down
+			send_buffer->data.set_p_values.select = P1_PITCH_ROLL_CONTROL;
+			send_buffer->data.set_p_values.mode = DECREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 		case 'o':
 		{
 			// roll/pitch control P2 up
+			send_buffer->data.set_p_values.select = P2_PITCH_ROLL_CONTROL;
+			send_buffer->data.set_p_values.mode = INCREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 		case 'l':
 		{
 			// roll/pitch control P2 down
+			send_buffer->data.set_p_values.select = P2_PITCH_ROLL_CONTROL;
+			send_buffer->data.set_p_values.mode = DECREMENT;
+			send_buffer->data.set_p_values.value = 1;
+			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
 
 		default:
 		{
 			printf("No valid input: %c\n", c);
-			return retval;
+			break;
 		}
 	}
-
-	build_and_send_message(msg_type, send_buffer);
-
 
 	return retval;
 }

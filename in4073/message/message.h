@@ -26,7 +26,11 @@ typedef enum
 {
 	MSG_SET_MODE = 0x01,		// PC -> DRONE
 	MSG_MODE_UPDATE,			// DRONE -> PC
+
 	MSG_INPUT_DATA,				// PC -> DRONE
+
+	MSG_SET_P_VALUES,			// PC-> DRONE
+	MSG_P_VALUES_UPDATE,		// DRONE -> PC
 
 	MSG_CALIBRATION_DATA,		// DRONE -> PC
 	MSG_MOTOR_DATA,				// DRONE -> PC
@@ -52,6 +56,20 @@ typedef enum
 	TERMINATE_MODE			// 9
 } mode_type_e;
 
+typedef enum 
+{
+	P_YAW_CONTROL = 0x01,
+	P1_PITCH_ROLL_CONTROL,
+	P2_PITCH_ROLL_CONTROL
+} p_value_select_e;
+
+typedef enum 
+{
+	INCREMENT = 0x01,
+	DECREMENT,
+	SET_ABSOLUTE_VALUE
+} p_update_mode_e;
+
 typedef struct 
 {
 	uint8_t mode;
@@ -69,6 +87,19 @@ typedef struct
 	int8_t pitch;
 	int8_t yaw;
 } input_data_t; // PC -> Drone
+
+typedef struct 
+{
+	uint8_t select;
+	uint8_t mode;
+	uint8_t value;
+} set_p_values_t;
+
+typedef struct 
+{
+	uint8_t p_value_select;
+	uint8_t value;
+} p_values_update_t;
 
 typedef struct 
 {
@@ -121,6 +152,8 @@ typedef union {
 	set_mode_data_t set_mode_data;
 	mode_update_t mode_update;
 	input_data_t input_data;
+	set_p_values_t set_p_values;
+	p_values_update_t p_values_update;
 	calibration_data_t calibration_data;
 	motor_data_t motor_data;
 	battery_data_t battery_data;

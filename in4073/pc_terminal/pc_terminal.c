@@ -36,7 +36,9 @@ int main(int argc, char **argv)
 	uint8_t mode_requested = 0;
 	uint8_t mode_received = 0;
 
+	// other
 	bool demo_done = false;
+	bool offset_update = false;
 	uint8_t retval = 0;
 
 	memset(axis_small,0,sizeof(axis_small));
@@ -58,7 +60,7 @@ int main(int argc, char **argv)
 	// init joystick time
   	clock_gettime(CLOCK_MONOTONIC, &t_joystick);
 
-#ifdef USE_GUI
+	#ifdef USE_GUI
   	// start GUI thread
   	pthread_t gui_thread;
   	
@@ -66,7 +68,7 @@ int main(int argc, char **argv)
 	{
     	perror("ERROR creating jsfunc thread.");
 	}
-#endif
+	#endif
 
 	// send & receive
 	while(!demo_done)
@@ -75,24 +77,46 @@ int main(int argc, char **argv)
 
   		if (compare_time (&t_now, &t_joystick))
 		{
-			if (read_joystick(axis_small, button))
+			if (read_joystick(axis_small, button) || offset_update)
 			{
 				// only send new data when a change is detected
 				#ifdef USE_GUI
 				update_gui(axis, button);
 				#endif
 
-				//TODO remove this later
-				axis_small[2] = 0; // force yaw to zero
+				// add keyboard offset to joystick values + check for overflow
+				int8_t axis_totals[4];
+				for (int i = 0; i < 4; i++)
+				{
+					int8_t x = axis_small[i];
+					int8_t y = axis_offsets[i];
 
-				send_buffer.data.input_data.roll = axis_small[0];
-				send_buffer.data.input_data.pitch = axis_small[1];
-				send_buffer.data.input_data.yaw = axis_small[2];
-				send_buffer.data.input_data.lift = axis_small[3];
+					if ((y > 0) && (x > (127 - y)))
+					{
+						axis_totals[i] = 127; // overflow
+					} 
+					else if ((y < 0) && (x < (127 - y)))
+					{
+					    axis_totals[i] = -127; // underflow
+					}
+					else
+					{
+					    axis_totals[i] = x + y;
+					}
+				}
+
+				// send joystick values to DRONE
+				send_buffer.data.input_data.roll = axis_totals[0];
+				send_buffer.data.input_data.pitch = axis_totals[1];
+				send_buffer.data.input_data.yaw = axis_totals[2];
+				send_buffer.data.input_data.lift = axis_totals[3];
 
 				build_and_send_message(MSG_INPUT_DATA, &send_buffer);
 				printf("small values: %d | %d | %d | %d\n", 
-					axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+					axis_totals[0], axis_totals[1], 
+					axis_totals[2], axis_totals[3]);
+
+				offset_update = false;
 			}
 			
 			t_joystick = add_time_millis(&t_now, 10);
@@ -101,10 +125,15 @@ int main(int argc, char **argv)
 		if ((c = term_getchar_nb()) != -1)
 		{
 			retval = select_message(c, &send_buffer);
-			if (retval = < 0x0F)
+			if (retval < 0x0F)
 			{
 				mode_requested = retval;
 				t_message_expect = add_time_millis(&t_now, 200);
+			}
+			else
+			{
+				// new offset is created, send new joystick values
+				offset_update = true;
 			}
 		}
 
