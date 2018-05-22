@@ -22,7 +22,6 @@
 int main(int argc, char **argv)
 {
 
-
 	// variables for sending/receiving messages
 	char c;
 	message_t send_buffer;
@@ -38,9 +37,6 @@ int main(int argc, char **argv)
 	uint8_t mode_received = 0;
 	
 	uint8_t retval = 0;
-
-	// debug variables
-	// uint8_t counter = 0;
 
 	memset(axis_small,0,sizeof(axis_small));
 	memset(button,0,sizeof(button));
@@ -81,28 +77,29 @@ int main(int argc, char **argv)
 			read_joystick(axis_small, button);
 			
 			#ifdef USE_GUI
-			// update ui
-			// update_gui(axis, button);
+			update_gui(axis, button);
 			#endif
 
-			// note: convert int16 to int8
+			//TODO remove this later
+			axis_small[2] = 0; // force yaw to zero
+
 			send_buffer.data.input_data.roll = axis_small[0];
 			send_buffer.data.input_data.pitch = axis_small[1];
 			send_buffer.data.input_data.yaw = axis_small[2];
 			send_buffer.data.input_data.lift = axis_small[3];
 
-
 			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
 
 			t_joystick = add_time_millis(&t_now, 10);
 
-			printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+			printf("small values: %d | %d | %d | %d\n", 
+				axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
 
 		}
 
 		if ((c = term_getchar_nb()) != -1)
 		{
-			if ((retval = select_message(c, &send_buffer)) != 0xFF)
+			if ((retval = select_message(c, &send_buffer)) < 0x0F)
 			{
 				mode_requested = retval;
 				t_message_expect = add_time_millis(&t_now, 200);

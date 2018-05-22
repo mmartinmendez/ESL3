@@ -15,6 +15,8 @@
 
 #include "in4073.h"
 
+//#define MANUAL_MODE
+
 /*------------------------------------------------------------------
  * main -- everything you need is here :)
  *------------------------------------------------------------------
@@ -44,8 +46,10 @@ int main(void)
 	uint8_t retval = 0;
 	uint8_t current_mode = 0;
 
-	uint32_t counter = 0;
+	
 	demo_done = false;
+	
+	uint32_t counter = 0;
 
 	while (!demo_done)
 	{
@@ -82,8 +86,8 @@ int main(void)
 		{
 			if (counter++%20 == 0) nrf_gpio_pin_toggle(BLUE);
 
-			adc_request_sample();
-			read_baro();
+			// adc_request_sample();
+			// read_baro();
 
 			// printf("%10ld | ", get_time_us());
 			printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
@@ -93,8 +97,6 @@ int main(void)
 
 			clear_timer_flag();
 		}
-
-
 	}	
 
 	printf("\n\t Goodbye \n\n");

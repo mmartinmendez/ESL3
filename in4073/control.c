@@ -24,7 +24,7 @@ void update_motors(void)
 void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 {
 
-	int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
+	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
 	// fancy stuff here
 	// control loops and/or filters
