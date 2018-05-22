@@ -180,7 +180,7 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 
             int Desired_Yaw_Angle = floor(yawdata/180); // in degrees
             Desired_Yaw_Angle =  floor(Desired_Yaw_Angle/180 * M_PI); // in rad
-            real_sr = cal_sr - sr;
+            int real_sr = cal_sr - sr;
             int Eps = Desired_Yaw_Angle - real_sr ; //can we use psi for this, or is it sr? 
 
 			while(1){
