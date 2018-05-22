@@ -84,12 +84,16 @@ int main(void)
 
 			adc_request_sample();
 			read_baro();
-
+			uint32_t time = get_time_us();
+			if (get_time_us() - time > 100000)
+			{
 			// printf("%10ld | ", get_time_us());
 			printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
 			//printf("%6d %6d %6d | ", phi, theta, psi);
 			printf("cal_sr:%6d sr: %6d | ", cal_sr, sr);
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
+			}
+			
 
 			clear_timer_flag();
 		}
