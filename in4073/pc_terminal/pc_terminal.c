@@ -35,7 +35,8 @@ int main(int argc, char **argv)
 	// mode variables
 	uint8_t mode_requested = 0;
 	uint8_t mode_received = 0;
-	
+
+	bool demo_done = false;
 	uint8_t retval = 0;
 
 	memset(axis_small,0,sizeof(axis_small));
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 #endif
 
 	// send & receive
-	for (;;)
+	while(!demo_done)
 	{
   		clock_gettime(CLOCK_MONOTONIC, &t_now);
 
@@ -99,7 +100,8 @@ int main(int argc, char **argv)
 
 		if ((c = term_getchar_nb()) != -1)
 		{
-			if ((retval = select_message(c, &send_buffer)) < 0x0F)
+			retval = select_message(c, &send_buffer);
+			if (retval = < 0x0F)
 			{
 				mode_requested = retval;
 				t_message_expect = add_time_millis(&t_now, 200);
@@ -119,10 +121,14 @@ int main(int argc, char **argv)
 			{
 				// we received an end-byte, now handle message
 				retval = handle_message(&receive_buffer, message_len);
-				if (retval != 0xFF)
+				if (retval < 0x0F)
 				{
 					mode_received = retval;
-				} 		
+				} 	
+				else if (retval == 27)
+				{
+					demo_done = true;
+				}
 			}	
 		}
 

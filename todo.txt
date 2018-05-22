@@ -1,5 +1,8 @@
+Todo:
 - panic if no commands received
 - fire button goto panic mode
-- escape -> panic mode
 - mapp all keyboard settings as described in assignment (including trimming of joystick)
 - check battery voltage (display battery voltage)
+
+Completed:
+- escape -> panic mode -> exit (not tested)

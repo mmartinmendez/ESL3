@@ -66,19 +66,18 @@ int main(void)
 				// we received an end-byte, now handle message
 				retval = handle_message(&send_buffer, receive_buffer, 
 					message_len, &demo_done); 		
-				if (retval != 0xFF)
+				if (retval < 0x0F)
 				{
 					current_mode = retval;
 				}
 
-				run_filters_and_control(&send_buffer, bat_volt);
 			}	
 		} 
 
 		if (check_sensor_int_flag()) 
 		{
 			get_dmp_data();
-			run_filters_and_control(&send_buffer, bat_volt);
+			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
 		}
 
 		if (check_timer_flag()) 
@@ -102,7 +101,9 @@ int main(void)
 		}
 	}	
 
+	send_terminate(&send_buffer);
 	printf("\n\t Goodbye \n\n");
+
 	nrf_delay_ms(100);
 
 	NVIC_SystemReset();

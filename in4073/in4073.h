@@ -38,7 +38,7 @@ uint8_t current_mode;
 // Control
 int16_t motor[4],ae[4];
 int8_t liftdata, rolldata, pitchdata, yawdata;
-void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt);
+void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done);
 
 // Timers
 #define TIMER_PERIOD			50 //50ms=20Hz (MAX 23bit, 4.6h)

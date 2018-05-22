@@ -89,6 +89,12 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 			break;
 		}
 
+		case MSG_TERMINATE:
+		{
+			retval = 27; // escape char
+			break;
+		}
+
 		default:
 		{
 			printf("PC: Received unsupported msg_type: %d\n", 
@@ -130,6 +136,14 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			msg_type = MSG_SET_MODE;
 			send_buffer->data.set_mode_data.mode = c - '0';
 			retval = c - '0';
+			break;
+		}
+		case '9':
+		case 27: // escape character
+		{
+			msg_type = MSG_SET_MODE;
+			send_buffer->data.set_mode_data.mode = TERMINATE_MODE;
+			retval = TERMINATE_MODE;
 			break;
 		}
 		case 'a': 
@@ -202,14 +216,6 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			// roll/pitch control P2 down
 			break;
 		}
-
-
-		case 27: // escape character
-		{
-			msg_type = MSG_TERMINATE;
-			break;
-		}
-
 
 		default:
 		{

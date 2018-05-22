@@ -23,10 +23,12 @@ void update_motors(void)
 	motor[3] = MIN(ae[3],1000);
 }
 
-void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt)
+void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done)
 {
 	static bool in_panic_mode = false;
 	static bool in_calibration_mode = false;
+	static bool exit_in_safe_mode = false;
+
 	static int setpoint = 0;
 	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
@@ -48,7 +50,11 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt)
 			ae[2] =0;
 			ae[3] =0;
 
-		break;
+			if (exit_in_safe_mode)
+			{
+				*demo_done = true;
+			}
+			break;
 		}
 
 		case PANIC_MODE:
@@ -205,6 +211,15 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt)
 
 		case WIRELESS_MODE:
 		break;
+
+		case TERMINATE_MODE:
+		{
+			// Termination: terminate->panic->safe->exit
+			current_mode = PANIC_MODE;
+			exit_in_safe_mode = true;
+			break;
+		}
+
 
 		default:
 		printf("Not a correct mode");

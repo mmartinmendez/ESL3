@@ -33,6 +33,18 @@ void send_message(message_t * message, uint8_t message_len)
 	putchar('\n'); // add newline to flush send buffer
 }
 
+void send_terminate(message_t * send_buffer)
+{
+	uint8_t message_len;
+
+	message_len = build_message(MSG_TERMINATE, NULL, 0, send_buffer);
+
+	if (message_len > 0)
+	{
+		send_message(send_buffer, message_len);
+	}
+}
+
 void send_mode_update(message_t * send_buffer, uint8_t mode)
 {
 	mode_update_t data;
@@ -74,6 +86,7 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 	}
 }
 
+// return mode set, or 0xFF
 uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer, 
 	uint8_t buffer_len, bool * demo_done)
 {
@@ -101,15 +114,8 @@ uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer,
 			pitchdata = data->pitch;
 			yawdata = data->yaw;
 
-			// printf("updating input data\n");
 			break;
 		}
-		case MSG_TERMINATE:
-		{
-			*demo_done = true;
-			break;
-		}
-
 		default:
 		{
 			printf("Received unsupported msg_type: %d\n", message_ptr->message_type);

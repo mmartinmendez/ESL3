@@ -11,6 +11,7 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 	int16_t saz);
 uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer, 
 	uint8_t buffer_len, bool * demo_done);
+void send_terminate(message_t * send_buffer);
 
 
 #endif
