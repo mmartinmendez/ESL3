@@ -11,19 +11,22 @@
  */
 
 #include "in4073.h"
-#include "math.h"
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 void update_motors(void)
 {
-	motor[0] = ae[0];
-	motor[1] = ae[1];
-	motor[2] = ae[2];
-	motor[3] = ae[3];
+	motor[0] = MIN(ae[0],1000);
+	motor[1] = MIN(ae[1],1000);
+	motor[2] = MIN(ae[2],1000);
+	motor[3] = MIN(ae[3],1000);
 }
 
-void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
+void run_filters_and_control(uint16_t bat_volt)
 {
-
+	static bool in_panic_mode = false;
+	static int setpoint = 0;
 	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
 	// fancy stuff here
@@ -49,51 +52,32 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 
 		case PANIC_MODE:
 		{
-			if(ae[0] > 254 &&  ae[1] > 254 && ae[2] > 254 && ae[3] > 254){
+			if (!in_panic_mode)
+			{
+				// create setpoint
+				setpoint = (ae[0] + ae[1] + ae[2] + ae [3]) / 4;
 
-				while(ae[0] != 450 && ae[1] != 450 && ae[2] != 450 && ae[3] != 450){
-	 				 if (ae[0] < 450)
-	 				 {
-	 				 	ae[0] += 1;
-	 				 } else {
-	 				 	ae[0] -= 1;
-	 				 }
-	 				 if (ae[1] < 450)
-	 				 {
-	 				 	ae[1] += 1;
-	 				 } else {
-	 				 	ae[1] -= 1;
-	 				 }
-	 				 if (ae[2] < 450)
-	 				 {
-	 				 	ae[2] += 1;
-	 				 } else {
-	 				 	ae[2] -= 1;
-	 				 }
-	 				 if (ae[3] < 450)
-	 				 {
-	 				 	ae[3] += 1;
-	 				 } else {
-	 				 	ae[3] -= 1;
-	 				 }
-				}
-
-				ae[0] = 450;
-				ae[1] = 450;
-				ae[2] = 450;
-				ae[3] = 450;
+				in_panic_mode = true;
 			}
 
-			while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
+			for (uint8_t i = 0; i < 4; i++)
 			{
-				ae[0] -= 1;
-					if (ae[0] < 0) ae[0] = 0;
-				ae[1] -= 1;
-					if (ae[1] < 0) ae[1] = 0;
-				ae[2] -= 1;
-					if (ae[2] < 0) ae[2] = 0;
-				ae[3] -= 1;
-					if (ae[3] < 0) ae[3] = 0;
+				if (ae[i] < setpoint)
+ 				{
+ 				 	ae[i] += MIN(setpoint - ae[i], PANIC_MODE_STEP_SIZE);
+ 				} else if (ae[i] > setpoint){
+ 					ae[i] -= MIN(ae[i] - setpoint, PANIC_MODE_STEP_SIZE);
+ 				}
+			}
+			
+			setpoint = MAX(0, setpoint - PANIC_MODE_STEP_SIZE);
+
+
+			if (ae[0] == 0 && ae[1] == 0 &&	ae[2] == 0 && ae[3] == 0)
+			{
+				// we are done with the panic mode, go to safe mode now
+				in_panic_mode = false;
+				current_mode = SAFE_MODE;
 			}
 	
 		break;

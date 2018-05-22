@@ -32,16 +32,19 @@
 #define INT_PIN		5
 
 bool demo_done;
+uint8_t current_mode;
+
 
 // void send_calibration_data(	int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz);
 
 // Control
 int16_t motor[4],ae[4];
 int8_t liftdata, rolldata, pitchdata, yawdata;
-void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt);
+void run_filters_and_control(uint16_t bat_volt);
 
 // Timers
-#define TIMER_PERIOD	5 //50ms=20Hz (MAX 23bit, 4.6h)
+#define TIMER_PERIOD			50 //50ms=20Hz (MAX 23bit, 4.6h)
+#define PANIC_MODE_STEP_SIZE 	TIMER_PERIOD / 4
 void timers_init(void);
 uint32_t get_time_us(void);
 bool check_timer_flag(void);

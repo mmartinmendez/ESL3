@@ -44,8 +44,6 @@ int main(void)
 	uint8_t message_len = 0;
 	uint8_t c;
 	uint8_t retval = 0;
-	uint8_t current_mode = 0;
-
 	
 	demo_done = false;
 	
@@ -72,14 +70,14 @@ int main(void)
 				}
 
 				//get_dmp_data();
-				run_filters_and_control(current_mode, bat_volt);
+				run_filters_and_control(bat_volt);
 			}	
 		} 
 
 		if (check_sensor_int_flag()) 
 		{
 			//get_dmp_data();
-			run_filters_and_control(current_mode, bat_volt);
+			run_filters_and_control(bat_volt);
 		}
 
 		if (check_timer_flag()) 
