@@ -67,14 +67,14 @@ int main(void)
 					current_mode = retval;
 				}
 
-				//get_dmp_data();
+				get_dmp_data();
 				run_filters_and_control(current_mode, bat_volt);
 			}	
 		} 
 
 		if (check_sensor_int_flag()) 
 		{
-			//get_dmp_data();
+			get_dmp_data();
 			run_filters_and_control(current_mode, bat_volt);
 		}
 
@@ -87,8 +87,8 @@ int main(void)
 
 			// printf("%10ld | ", get_time_us());
 			printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
-			// printf("%6d %6d %6d | ", phi, theta, psi);
-			printf("%6d %6d %6d | ", sp, sq, sr);
+			//printf("%6d %6d %6d | ", phi, theta, psi);
+			printf("cal_sr:%6d sr: %6d | ", cal_sr, sr);
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();

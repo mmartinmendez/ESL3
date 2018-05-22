@@ -24,7 +24,7 @@ void update_motors(void)
 void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 {
 
-	int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
+	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
 	// fancy stuff here
 	// control loops and/or filters
@@ -183,28 +183,25 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
             int real_sr = cal_sr - sr;
             int Eps = Desired_Yaw_Angle - real_sr ; //can we use psi for this, or is it sr? 
 
-			while(1){
-
-				if(Eps > 5){ //not sure if these values are anything near correct
+				if(Eps > 100){ //not sure if these values are anything near correct
 					ae[0] = ae[0] - floor(1/control_factor * ae[0]);
 					ae[1] = ae[1] + floor(1/control_factor * ae[1]);
 					ae[2] = ae[2] - floor(1/control_factor * ae[2]);
 					ae[3] = ae[3] + floor(1/control_factor * ae[3]);
 				} 
-				if(Eps < -5){ //not sure if these values are anything near correct
+				if(Eps < -100){ //not sure if these values are anything near correct
 					ae[0] = ae[0] + floor(1/control_factor * ae[0]);
 					ae[1] = ae[1] - floor(1/control_factor * ae[1]);
 					ae[2] = ae[2] + floor(1/control_factor * ae[2]);
 					ae[3] = ae[3] - floor(1/control_factor * ae[3]);
 				}
-				if (Eps > -5 &&  Eps < 5){ //not sure if these values are anything near correct
+				if (Eps > -100 &&  Eps < 100){ //not sure if these values are anything near correct
 					ae[0] = ae[0];
 					ae[1] = ae[1];
 					ae[2] = ae[2];
 					ae[3] = ae[3];
-					break;
+					
 				}
-			}
 		break;
 		}
 
