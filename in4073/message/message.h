@@ -97,7 +97,7 @@ typedef struct
 
 typedef struct 
 {
-	uint8_t p_value_select;
+	uint8_t select;
 	uint8_t value;
 } p_values_update_t;
 

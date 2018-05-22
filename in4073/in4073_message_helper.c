@@ -60,6 +60,45 @@ void send_mode_update(message_t * send_buffer, uint8_t mode)
 	}
 }
 
+void send_p_values_update(message_t * send_buffer, uint8_t select)
+{
+	p_values_update_t data;
+	uint8_t message_len;
+
+	data.select = select;
+
+	switch (select)
+	{
+		case P_YAW_CONTROL:
+		{
+			data.value = p_yaw_control;
+			break;
+		}
+		case P1_PITCH_ROLL_CONTROL:
+		{
+			data.value = p1;
+			break;
+		}
+		case P2_PITCH_ROLL_CONTROL:
+		{
+			data.value = p2;
+			break;
+		}
+		default:
+		{
+			data.value = 0;
+		}
+	}
+
+	message_len = build_message(MSG_P_VALUES_UPDATE, (uint8_t *) &data, 
+		sizeof(data), send_buffer);
+
+	if (message_len > 0)
+	{
+		send_message(send_buffer, message_len);
+	}
+}
+
 void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta, 
 	int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, 
 	int16_t saz)
@@ -84,6 +123,59 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 	{
 		send_message(send_buffer, message_len);
 	}
+}
+
+static void change_p_values(set_p_values_t * data)
+{
+	uint8_t * selected_p_value;
+	switch (data->select)
+	{
+		case P_YAW_CONTROL:
+		{
+			selected_p_value = &p_yaw_control;
+			break;
+		}
+		case P1_PITCH_ROLL_CONTROL:
+		{
+			selected_p_value = &p1;
+			break;
+		}
+		case P2_PITCH_ROLL_CONTROL:
+		{
+			selected_p_value = &p2;
+			break;
+		}
+		default:
+		{
+			printf("No valid p value selected: %d", data->select);
+			return;
+		}
+	}
+
+	switch (data->mode)
+	{
+		case INCREMENT:
+		{
+			*selected_p_value += data->value;
+			break;
+		}
+		case DECREMENT:
+		{
+			*selected_p_value -= data->value;
+			if(*selected_p_value < 0)
+			{
+				*selected_p_value = 0; // we don't want negative p values	
+			} 
+			break;
+		}
+		case SET_ABSOLUTE_VALUE:
+		{
+			*selected_p_value = data->value;
+			break;
+		}
+	}
+
+
 }
 
 // return mode set, or 0xFF
@@ -114,6 +206,13 @@ uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer,
 			pitchdata = data->pitch;
 			yawdata = data->yaw;
 
+			break;
+		}
+		case MSG_SET_P_VALUES:
+		{
+			set_p_values_t * data = (set_p_values_t*) &(message_ptr->data);
+			change_p_values(data);
+			send_p_values_update(send_buffer, data->select);
 			break;
 		}
 		default:

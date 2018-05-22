@@ -36,6 +36,7 @@ uint8_t current_mode;
 // void send_calibration_data(	int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz);
 
 // Control
+uint8_t p_yaw_control, p1, p2;
 int16_t motor[4],ae[4];
 int8_t liftdata, rolldata, pitchdata, yawdata;
 void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done);
