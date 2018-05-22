@@ -55,9 +55,14 @@ void TIMER1_IRQHandler(void)
 
 
 uint32_t get_time_us(void)
-{
-	NRF_TIMER2->TASKS_CAPTURE[2]=1;
-	return (global_time+(NRF_TIMER2->CC[2]>>3));
+{ 
+	uint32_t high = 0, low = 0;
+	while( (high!= global_time)){
+		high = global_time;
+		NRF_TIMER2->TASKS_CAPTURE[2]=1;
+		low = NRF_TIMER2->CC[2]>>3;
+	}
+	return high+low;
 }
 
 bool check_timer_flag(void)
