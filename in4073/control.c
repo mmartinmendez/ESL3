@@ -23,7 +23,7 @@ void update_motors(void)
 	motor[3] = MIN(ae[3],1000);
 }
 
-void run_filters_and_control(uint16_t bat_volt)
+void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt)
 {
 	static bool in_panic_mode = false;
 	static bool in_calibration_mode = false;
@@ -102,11 +102,6 @@ void run_filters_and_control(uint16_t bat_volt)
 				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
 				updated[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
 
-				// ae[0] = (ae[0] > updated[0]) ? ae[0]+10 : updated[0];
-				// ae[1] = (ae[1] > updated[1]) ? ae[1]+10 : updated[1];
-				// ae[2] = (ae[2] > updated[2]) ? ae[2]+10 : updated[2];
-				// ae[3] = (ae[3] > updated[3]) ? ae[3]+10 : updated[3];
-
 				ae[0] = updated[0];
 				ae[1] = updated[1];
 				ae[2] = updated[2];
@@ -140,7 +135,7 @@ void run_filters_and_control(uint16_t bat_volt)
 				cal_say = say;
 				cal_saz = saz;
 
-				send_calibration_data(&send_buffer, cal_phi,cal_theta,cal_psi,
+				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
 					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 
 				in_calibration_mode = true;

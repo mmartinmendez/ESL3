@@ -36,6 +36,8 @@ int main(void)
 	ble_init();
 	crc_init();
 
+	message_t send_buffer;
+
 	// variables for input receive_buffer
 	static uint8_t receive_buffer[sizeof(message_t)];
 	static bool is_escaped = false;
@@ -45,8 +47,8 @@ int main(void)
 	uint8_t c;
 	uint8_t retval = 0;
 	
-	demo_done = false;
-	
+	bool demo_done = false;
+
 	uint32_t counter = 0;
 
 	while (!demo_done)
@@ -69,14 +71,14 @@ int main(void)
 					current_mode = retval;
 				}
 
-				run_filters_and_control(bat_volt);
+				run_filters_and_control(&send_buffer, bat_volt);
 			}	
 		} 
 
 		if (check_sensor_int_flag()) 
 		{
 			get_dmp_data();
-			run_filters_and_control(bat_volt);
+			run_filters_and_control(&send_buffer, bat_volt);
 		}
 
 		if (check_timer_flag()) 
