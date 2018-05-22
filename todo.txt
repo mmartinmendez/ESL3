@@ -1,9 +1,9 @@
 Todo:
-- panic if no commands received
 - fire button goto panic mode
-- mapp all keyboard settings as described in assignment (including trimming of joystick)
 - check battery voltage (display battery voltage)
 - make the manual mode rotations less sensitive
 
-Completed:
-- escape -> panic mode -> exit (not tested)
+Complete (to be tested):
+- escape -> panic mode -> exit
+- mapp all keyboard settings as described in assignment (including trimming of joystick)
+- panic if no commands received

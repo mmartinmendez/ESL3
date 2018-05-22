@@ -118,6 +118,10 @@ int main(int argc, char **argv)
 
 				offset_update = false;
 			}
+			else
+			{
+				rs232_putchar(START_BYTE); // heartbeat signal
+			}
 			
 			t_joystick = add_time_millis(&t_now, 10);
 		}

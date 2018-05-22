@@ -50,13 +50,22 @@ int main(void)
 	bool demo_done = false;
 
 	uint32_t counter = 0;
+	uint32_t time_last_char_received = get_time_us();
 
 	while (!demo_done)
 	{
 
+		if (check_sensor_int_flag()) 
+		{
+			get_dmp_data();
+			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+		}
+
 		if (rx_queue.count)
 		{
 			c = dequeue(&rx_queue);
+
+			time_last_char_received = get_time_us();
 
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, receive_buffer, "DRONE");
@@ -74,12 +83,6 @@ int main(void)
 			}	
 		} 
 
-		if (check_sensor_int_flag()) 
-		{
-			get_dmp_data();
-			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
-		}
-
 		if (check_timer_flag()) 
 		{
 			if (counter++%20 == 0) nrf_gpio_pin_toggle(BLUE);
@@ -87,15 +90,17 @@ int main(void)
 			// adc_request_sample();
 			// read_baro();
 
-			uint32_t time = get_time_us();
-			if (get_time_us() - time > 0)
+			if (get_time_us() - time_last_char_received > 1000000)
 			{
-				// printf("%10ld | ", get_time_us());
-				//printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
-				// printf("%6d %6d %6d | ", phi, theta, psi);
-				//printf("%6d %6d %6d | ", sp, sq, sr);
-				// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
+				// we did not receive any char for over a second -> panic
+				current_mode = PANIC_MODE;
 			}
+
+			// printf("%10ld | ", get_time_us());
+			//printf("Motor values: %3d %3d %3d %3d \n",ae[0],ae[1],ae[2],ae[3]);
+			// printf("%6d %6d %6d | ", phi, theta, psi);
+			//printf("%6d %6d %6d | ", sp, sq, sr);
+			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();
 		}
