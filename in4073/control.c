@@ -15,10 +15,10 @@
 
 void update_motors(void)
 {
-	// motor[0] = ae[0];
-	// motor[1] = ae[1];
-	// motor[2] = ae[2];
-	// motor[3] = ae[3];
+	motor[0] = ae[0];
+	motor[1] = ae[1];
+	motor[2] = ae[2];
+	motor[3] = ae[3];
 }
 
 void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
@@ -221,5 +221,5 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 		printf("Not a correct mode");
 	}
 
-	//update_motors();
+	update_motors();
 }
