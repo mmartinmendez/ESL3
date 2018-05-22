@@ -29,32 +29,37 @@ void init_joystick ()
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
-void read_joystick (int8_t axis_small[], int button[])
+// returns true when a new value is read
+bool read_joystick (int8_t axis_small[], int button[])
 {
-	
+	bool values_updated = false;
 	/* check up on JS
 	 */
 	while (read(fd, &js, sizeof(struct js_event)) == 
 	       			sizeof(struct js_event))  {
+		values_updated = true;
 
 		/* register data
 		 */
 		// fprintf(stderr,".");
+
 		switch(js.type & ~JS_EVENT_INIT) {
 			case JS_EVENT_BUTTON:
+			{
 				button[js.number] = js.value;
 				break;
+			}
 			case JS_EVENT_AXIS:
+			{
 				axis_small[js.number] = js.value / 256;
-				if (js.number == 3) axis_small[3] = - axis_small[3]; // invert lift
-				break;
+				if (js.number == 3) 
+				{
+					axis_small[3] = - axis_small[3]; // invert lift	
+				}
+				break;	
+			}
 		}
 	}
-
-	// axis_small[0] = axis[0] / 256;
-	// axis_small[1] = axis[1] / 256;
-	// axis_small[2] = axis[2] / 256;
-	// axis_small[3] = -axis[3] / 256; // invert lift
 
 	if (errno != EAGAIN) {
 		perror("\njs: error reading (EAGAIN)");
@@ -73,6 +78,8 @@ void read_joystick (int8_t axis_small[], int button[])
 		printf("%d ",button[i]);
 	}
 	#endif
+
+	return values_updated;
 }
 
 bool is_joystick_zero()

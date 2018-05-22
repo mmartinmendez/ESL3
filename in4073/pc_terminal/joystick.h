@@ -131,7 +131,7 @@ int8_t axis_small[6];
 int	button[12];
 
 void init_joystick();
-void read_joystick (int8_t axis_small[], int button[]);
+bool read_joystick (int8_t axis_small[], int button[]);
 bool is_joystick_zero();
 
 #endif /* _LINUX_JOYSTICK_H */

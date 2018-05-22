@@ -1,0 +1,6 @@
+- panic if no commands received
+- fire button goto panic mode
+- escape -> panic mode
+- mapp all keyboard settings as described in assignment (including trimming of joystick)
+- check battery voltage (display battery voltage)
+- only update joystick value on screen on change

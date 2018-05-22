@@ -74,27 +74,27 @@ int main(int argc, char **argv)
 
   		if (compare_time (&t_now, &t_joystick))
 		{
-			read_joystick(axis_small, button);
+			if (read_joystick(axis_small, button))
+			{
+				// only send new data when a change is detected
+				#ifdef USE_GUI
+				update_gui(axis, button);
+				#endif
+
+				//TODO remove this later
+				axis_small[2] = 0; // force yaw to zero
+
+				send_buffer.data.input_data.roll = axis_small[0];
+				send_buffer.data.input_data.pitch = axis_small[1];
+				send_buffer.data.input_data.yaw = axis_small[2];
+				send_buffer.data.input_data.lift = axis_small[3];
+
+				build_and_send_message(MSG_INPUT_DATA, &send_buffer);
+				printf("small values: %d | %d | %d | %d\n", 
+					axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+			}
 			
-			#ifdef USE_GUI
-			update_gui(axis, button);
-			#endif
-
-			//TODO remove this later
-			axis_small[2] = 0; // force yaw to zero
-
-			send_buffer.data.input_data.roll = axis_small[0];
-			send_buffer.data.input_data.pitch = axis_small[1];
-			send_buffer.data.input_data.yaw = axis_small[2];
-			send_buffer.data.input_data.lift = axis_small[3];
-
-			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
-
 			t_joystick = add_time_millis(&t_now, 10);
-
-			printf("small values: %d | %d | %d | %d\n", 
-				axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
-
 		}
 
 		if ((c = term_getchar_nb()) != -1)

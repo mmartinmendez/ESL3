@@ -75,66 +75,6 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 	}
 }
 
-// returns mode requested or 0xFF if no mode is set
-uint8_t select_message(uint8_t c, message_t * send_buffer)
-{
-	msg_type_e msg_type;
-	message_data_u data;
-	uint8_t data_len = 0;
-	uint8_t message_len = 0;
-	uint8_t retval = 0xFF;
-
-	switch(c)
-	{
-		case '0':
-		case '1':
-		{
-			msg_type = MSG_SET_MODE;
-			data.set_mode_data.mode = c - '0';
-			retval = c - '0';
-			data_len = sizeof(data.set_mode_data);
-			break;
-		}
-		case '2':
-		{
-			// first check if joystick is in 'zero' position
-			if (!is_joystick_zero())
-			{
-				printf("Set joystick into zero position\n");
-				return retval;
-			}
-
-			msg_type = MSG_SET_MODE;
-			data.set_mode_data.mode = c - '0';
-			retval = c - '0';
-			data_len = sizeof(data.set_mode_data);
-			break;
-		}
-		case 27: // escape character
-		{
-			msg_type = MSG_TERMINATE;
-			data_len = 0;
-			break;
-		}
-		default:
-		{
-			printf("No valid input: %c\n", c);
-			return retval;
-		}
-	}
-
-	message_len = build_message(msg_type, (uint8_t *) &data, data_len, 
-		send_buffer);
-
-	if (message_len > 0)
-	{
-		send_message(send_buffer, message_len);
-	}
-
-	return retval;
-}
-
-
 uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 {
 	uint8_t retval = 0xFF;
@@ -156,6 +96,130 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 			break;
 		}
 	}
+
+	return retval;
+}
+
+// returns mode requested or 0xFF if no mode is set
+uint8_t select_message(uint8_t c, message_t * send_buffer)
+{
+	msg_type_e msg_type;
+	uint8_t retval = 0xFF;
+
+	switch(c)
+	{
+		case '0': // SAFE MODE
+		case '1': // PANIC MODE
+		case '3': // CALIBRATION MODE
+		{
+			msg_type = MSG_SET_MODE;
+			send_buffer->data.set_mode_data.mode = c - '0';
+			retval = c - '0';
+			break;
+		}
+		case '2': // MANUAL MODE
+		case '4': // YAW CONTROL MODE
+		{
+			// first check if joystick is in 'zero' position
+			if (!is_joystick_zero())
+			{
+				printf("Set joystick into zero position\n");
+				return retval;
+			}
+
+			msg_type = MSG_SET_MODE;
+			send_buffer->data.set_mode_data.mode = c - '0';
+			retval = c - '0';
+			break;
+		}
+		case 'a': 
+		{
+			// lift up
+			break;
+		}
+		case 'z': 
+		{
+			// lift down
+			break;
+		}
+		case 37: // LEFT ARROW 
+		{
+			// roll up
+			break;
+		}
+		case 39: // RIGHT ARROW 
+		{
+			// roll down
+			break;
+		}
+		case 38: // UP ARROW 
+		{
+			// pitch down
+			break;
+		}
+		case 40: // DOWN ARROW 
+		{
+			// pitch down
+			break;
+		}
+		case 'q':
+		{
+			// yaw down
+			break;
+		}
+		case 'w':
+		{
+			// yaw up
+			break;
+		}
+		case 'u':
+		{
+			// yaw control P up
+			break;
+		}
+		case 'j':
+		{
+			// yaw control P down
+			break;
+		}
+		case 'i':
+		{
+			// roll/pitch control P1 up
+			break;
+		}
+		case 'k':
+		{
+			// roll/pitch control P1 down
+			break;
+		}
+		case 'o':
+		{
+			// roll/pitch control P2 up
+			break;
+		}
+		case 'l':
+		{
+			// roll/pitch control P2 down
+			break;
+		}
+
+
+		case 27: // escape character
+		{
+			msg_type = MSG_TERMINATE;
+			break;
+		}
+
+
+		default:
+		{
+			printf("No valid input: %c\n", c);
+			return retval;
+		}
+	}
+
+	build_and_send_message(msg_type, send_buffer);
+
 
 	return retval;
 }
