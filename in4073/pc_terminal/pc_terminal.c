@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
 			t_joystick = add_time_millis(&t_now, 10);
 
-			printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
+			//printf("small values: %d | %d | %d | %d\n", axis_small[0], axis_small[1], axis_small[2], axis_small[3]);
 
 		}
 
