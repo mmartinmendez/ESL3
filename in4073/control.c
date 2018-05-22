@@ -15,10 +15,10 @@
 
 void update_motors(void)
 {
-	motor[0] = ae[0];
-	motor[1] = ae[1];
-	motor[2] = ae[2];
-	motor[3] = ae[3];
+	// motor[0] = ae[0];
+	// motor[1] = ae[1];
+	// motor[2] = ae[2];
+	// motor[3] = ae[3];
 }
 
 void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
@@ -180,11 +180,12 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 
             int Desired_Yaw_Angle = floor(yawdata/180); // in degrees
             Desired_Yaw_Angle =  floor(Desired_Yaw_Angle/180 * M_PI); // in rad
-            int Eps = Desired_Yaw_Angle - psi; //can we use psi for this, or is it sr? 
+            real_sr = cal_sr - sr;
+            int Eps = Desired_Yaw_Angle - real_sr ; //can we use psi for this, or is it sr? 
 
 			while(1){
 
-				if(Eps > 4){ //not sure if these values are anything near correct
+				if(Eps > 5){ //not sure if these values are anything near correct
 					ae[0] = ae[0] - floor(1/control_factor * ae[0]);
 					ae[1] = ae[1] + floor(1/control_factor * ae[1]);
 					ae[2] = ae[2] - floor(1/control_factor * ae[2]);
@@ -223,5 +224,5 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 		printf("Not a correct mode");
 	}
 
-	update_motors();
+	//update_motors();
 }
