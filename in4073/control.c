@@ -49,7 +49,7 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 
 		case PANIC_MODE:
 		{
-			if(ae[0] != 0 &&  ae[1] != 0 && ae[2] != 0 && ae[3] != 0){
+			if(ae[0] > 254 &&  ae[1] > 254 && ae[2] > 254 && ae[3] > 254){
 
 				while(ae[0] != 450 && ae[1] != 450 && ae[2] != 450 && ae[3] != 450){
 	 				 if (ae[0] < 450)
@@ -82,19 +82,20 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 				ae[1] = 450;
 				ae[2] = 450;
 				ae[3] = 450;
+			}
 
-				while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
-				{
-					ae[0] -= 1;
-						if (ae[0] < 0) ae[0] = 0;
-					ae[1] -= 1;
-						if (ae[1] < 0) ae[1] = 0;
-					ae[2] -= 1;
-						if (ae[2] < 0) ae[2] = 0;
-					ae[3] -= 1;
-						if (ae[3] < 0) ae[3] = 0;
-				}
-		}
+			while(ae[0] > 0 && ae[1] > 0 && ae[2] > 0 && ae[3] > 0 )
+			{
+				ae[0] -= 1;
+					if (ae[0] < 0) ae[0] = 0;
+				ae[1] -= 1;
+					if (ae[1] < 0) ae[1] = 0;
+				ae[2] -= 1;
+					if (ae[2] < 0) ae[2] = 0;
+				ae[3] -= 1;
+					if (ae[3] < 0) ae[3] = 0;
+			}
+	
 		break;
 		}
 
@@ -103,12 +104,6 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 			//manual mode
 
 			int16_t updated[4];
-
-			// TO-DO mapping from input to usable values
-			// i.e rolldata from -50 -> 50,  [-50, 0] roll left, [0, 50] roll right
-			// i.e pitchdata from -50 -> 50,  [-50, 0] pitch back, [0, 50] pitch forward
-			// i.e yawdata from -50 -> 50,  [-50, 0] yaw left, [0, 50] yaw right
-			// all normalized based on liftdata
 
 			if(liftdata == -127) {
 				ae[0] =0;
@@ -181,7 +176,7 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 				else if(ae[3] > 450) ae[3] = 450;
 
 			
-			int control_factor = 3; //should be adjustable by keyboard
+			int control_factor = 10; //should be adjustable by keyboard
 
             int Desired_Yaw_Angle = floor(yawdata/180); // in degrees
             Desired_Yaw_Angle =  floor(Desired_Yaw_Angle/180 * M_PI); // in rad
