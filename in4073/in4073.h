@@ -31,6 +31,9 @@
 #define BLUE		30
 #define INT_PIN		5
 
+#define MAX_RPM		762
+#define MIN_RPM		254
+
 uint8_t current_mode;
 
 // void send_calibration_data(	int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz);

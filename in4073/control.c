@@ -31,17 +31,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 	static int setpoint = 0;
 
-	static int debug_print_counter = 0; //TODO remove this later
-	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
-
-	// fancy stuff here
-	// control loops and/or filters
-
-	// ae[0] = xxx, ae[1] = yyy etc etc
-
-	// if(bat_volt < 10.5){
-	// 	current_mode = PANIC_MODE;
-	// }
 
 	switch (current_mode)
 	{
@@ -87,6 +76,8 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				// we are done with the panic mode, go to safe mode now
 				in_panic_mode = false;
 				current_mode = SAFE_MODE;
+
+				printf("Panic mode is done, go to safe mode\n");
 			}
 	
 		break;
@@ -155,21 +146,17 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		case YAW_CONTROL_MODE:
 		{
 
-				ae[0] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
-				ae[1] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
-				ae[2] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
-				ae[3] = (liftdata + 127 * 2) * 2; //adjust to correct values from python script
+			if (liftdata == -127) {
+				ae[0] =0;
+				ae[1] =0;
+				ae[2] =0;
+				ae[3] =0;
 
-				if (ae[0] < 254) ae[0] = 254;
-				else if(ae[0] > 450) ae[0] = 450;
-				if (ae[1] < 254) ae[1] = 254;
-				else if(ae[1] > 450) ae[1] = 450;
-				if (ae[2] < 254) ae[2] = 254;
-				else if(ae[2] > 450) ae[2] = 450;
-				if (ae[3] < 254) ae[3] = 254;
-				else if(ae[3] > 450) ae[3] = 450;
+				break;
+			} 
 
-			
+			int lift_setpoint  = (liftdata + 127 * 2) * 2;
+
 			int P = p_yaw_control; //should be adjustable by keyboard
 
 			// compensate for calibration error
@@ -180,18 +167,39 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
             int Eps = rate_setpoint - real_sr ; //can we use psi for this, or is it sr? 
 
-			if((Eps < -100) || (Eps > 100)){ // do not change on small eps
-				ae[0] = ae[0] - P * Eps;
-				ae[1] = ae[1] + P * Eps;
-				ae[2] = ae[2] - P * Eps;
-				ae[3] = ae[3] + P * Eps;
-			} 
+            // cap Esp at +-7000
+            if (Eps > 2000)
+            {
+            	Eps = 2000;	
+            } 
+            else if (Eps < -2000)
+            {
+            	Eps = -2000;
+            }	
+
+            // scale eps
+            Eps = Eps / 250; // TODO replace this with fixed point
+
+			ae[0] = lift_setpoint + P * Eps;
+			ae[1] = lift_setpoint - P * Eps;
+			ae[2] = lift_setpoint + P * Eps;
+			ae[3] = lift_setpoint - P * Eps;
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
+				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
+			}
+
+			#if 0
+			static int debug_print_counter = 0; //TODO remove this later
 
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
 				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d \n", Eps, real_sr, sr, cal_sr);
 			}
+			#endif
 
 		break;
 		}
