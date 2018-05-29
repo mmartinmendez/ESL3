@@ -13,6 +13,25 @@
 #include "in4073.h"
 #include "math.h"
 
+//Kalman parameters
+int p = 0;
+int p_b = 0;
+int P2PHI = 268;
+int C1_p = 1000;
+int C2_p = 1000000;
+int P1_p = 0;
+int P2_p = 0;
+int roll_setpoint = 0;
+
+int t = 0;
+int t_b = 0;
+int P2THETA = 268;
+int C1_t = 1000;
+int C2_t = 1000000;
+int P1_t = 0;
+int P2_t = 0;
+int pitch_setpoint = 0;
+
 void update_motors(void)
 {
 	// motor[0] = ae[0];
@@ -152,6 +171,15 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 			cal_sax = sax;
 			cal_say = say;
 			cal_saz = saz;
+			cal_phi = phi;		//rolling x angle	
+			cal_theta = theta;	//pitch y angle
+			cal_psi = psi;		//yaw z angle
+			cal_sp = sp;		//x velocity
+			cal_sq = sq;		//y velocity
+			cal_sr = sr;		//z velocity
+			cal_sax = sax;		//x accelleration 
+			cal_say = say;		//y accelleration
+			cal_saz = saz;		//z accelleration
 
 			send_calibration_data(&send_buffer, cal_phi,cal_theta,cal_psi,
 				cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
@@ -206,7 +234,29 @@ void run_filters_and_control(uint8_t current_mode, uint16_t bat_volt)
 		}
 
 		case FULL_CONTROL_MODE:
+		{
+
+		// Kalman for p, phi
+		p = sp - p_b
+		phi = phi + p * P2PHI
+		phi = phi - (phi - say) / C1_p
+		p_b = p_b + (phi - say) / C2_p
+		// Use p, phi in P controller
+		K_s_p = P1_p * (roll_setpoint - phi) - P2_p * p
+
+
+		// Kalman for t, theta
+		t = sq - t_b
+		theta = theta + t * P2THETA
+		theta = theta - (theta - sax) / C1_t
+		t_b = t_b + (theta - sax) / C2_t
+		// Use p, phi in P controller
+		K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t
+
+
+
 		break;
+		}
 
 		case RAW_MODE:
 		break;
