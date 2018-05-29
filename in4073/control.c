@@ -30,6 +30,8 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 	static bool exit_in_safe_mode = false;
 
 	static int setpoint = 0;
+
+	static int debug_print_counter = 0; //TODO remove this later
 	// int16_t cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz;
 
 	// fancy stuff here
@@ -168,35 +170,29 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				else if(ae[3] > 450) ae[3] = 450;
 
 			
-			int control_factor = 5; //should be adjustable by keyboard
+			int P = p_yaw_control; //should be adjustable by keyboard
 
-            int Desired_Yaw_Angle = yawdata/180; // in degrees
-            Desired_Yaw_Angle =  Desired_Yaw_Angle/180 * M_PI; // in rad
-            int real_sr = cal_sr - sr;
-            int Eps = Desired_Yaw_Angle - real_sr ; //can we use psi for this, or is it sr? 
+			// compensate for calibration error
+            int real_sr = sr - cal_sr;
 
-				if(Eps > 100){ //not sure if these values are anything near correct
-					ae[0] = ae[0] - ae[0] / control_factor;
-					ae[1] = ae[1] + ae[1] / control_factor;
-					ae[2] = ae[2] - ae[2] / control_factor;
-					ae[3] = ae[3] + ae[3] / control_factor;
-				} 
-				if(Eps < -100){ //not sure if these values are anything near correct
-					ae[0] = ae[0] + ae[0] / control_factor;
-					ae[1] = ae[1] - ae[1] / control_factor;
-					ae[2] = ae[2] + ae[2] / control_factor;
-					ae[3] = ae[3] - ae[3] / control_factor;
-				}
-				if (Eps > -100 &&  Eps < 100){ //not sure if these values are anything near correct
-					ae[0] = ae[0];
-					ae[1] = ae[1];
-					ae[2] = ae[2];
-					ae[3] = ae[3];
-				}
+            // TODO convert joystick yaw to rate (for now leave at 0)
+            int rate_setpoint = 0; // this is determined by yaw rate of joystick
 
+            int Eps = rate_setpoint - real_sr ; //can we use psi for this, or is it sr? 
+
+			if((Eps < -100) || (Eps > 100)){ // do not change on small eps
+				ae[0] = ae[0] - P * Eps;
+				ae[1] = ae[1] + P * Eps;
+				ae[2] = ae[2] - P * Eps;
+				ae[3] = ae[3] + P * Eps;
+			} 
+
+			if (debug_print_counter++%4 == 0)
+			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("Eps: %6d | real_sr: %6d| Desired_Yaw_Angle: %6d \n", Eps, real_sr, Desired_Yaw_Angle);
-				// printf("%6d %6d %6d\n", sp, sq, sr);
+				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d \n", Eps, real_sr, sr, cal_sr);
+			}
+
 		break;
 		}
 
