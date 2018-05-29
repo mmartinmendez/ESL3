@@ -175,13 +175,12 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-
-			int P = p_yaw_control; //should be adjustable by keyboard
+			int P = p_yaw_control;
 
 			// compensate for calibration error
             int real_sr = sr - cal_sr;
 
-            // cap Esp at +-7000
+            // cap Esp at +-2000
             if (real_sr > 2000)
             {
             	real_sr = 2000;	
@@ -191,10 +190,9 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             	real_sr = -2000;
             }	
 
-            // TODO convert joystick yaw to rate (for now leave at 0)
-            int rate_setpoint = yawdata * 20; // this is determined by yaw rate of joystick
-
-            int Eps = rate_setpoint - real_sr ; //can we use psi for this, or is it sr? 
+ 			// this is determined by yaw rate of joystick
+            int rate_setpoint = yawdata * 20;
+            int Eps = rate_setpoint - real_sr ;
 
             // scale eps
             Eps = Eps / 250; // TODO replace this with fixed point
@@ -210,7 +208,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
-			#if 1
+			#if 0
 			static int debug_print_counter = 0; //TODO remove this later
 
 			if (debug_print_counter++%4 == 0)
@@ -227,6 +225,38 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case FULL_CONTROL_MODE:
 		{
+
+			if (liftdata == -127) {
+				ae[0] =0;
+				ae[1] =0;
+				ae[2] =0;
+				ae[3] =0;
+
+				break;
+			}
+
+			//int lift_setpoint  = (liftdata + 127 * 2) * 2;
+
+			// compensate for calibration error
+            int real_sax = sax - cal_sax;
+            //int real_say = say - cal_say;
+            int real_sp = sp - cal_sp;
+            //int real_sq = sq - cal_sq;
+
+            int roll_s = 0; // TODO implement joystick mapping
+            //int pitch_s = 0; // TODO implement joystick mapping
+
+			int K_s_roll = p1 * (roll_s - real_sax) - p2 * real_sp;
+			// int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
+
+			static int debug_print_counter = 0; //TODO remove this later
+
+			if (debug_print_counter++%4 == 0)
+			{
+				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
+				printf("K_s_roll: %6d | real_sax: %6d| real_sp: %6d\n", 
+					K_s_roll, real_sax, real_sp);
+			}
 
 			break;
 		}
