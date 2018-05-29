@@ -93,7 +93,7 @@ int main(void)
 				adc_request_sample();
 				// not sure which outputs the correct battry level
 				printf("bat_volt: %dV or %dV or %dV\n", bat_volt, 
-				bat_volt*1.2*3/255*2, bat_volt / 142); 
+				bat_volt*3/255*2, bat_volt / 142); 
 
 				// TODO replace with correct bat_volt value
 				if (bat_volt < 0) // bat_volt < 10.5V 
