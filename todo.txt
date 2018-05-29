@@ -2,8 +2,10 @@ Todo:
 - fire button goto panic mode
 - check battery voltage (display battery voltage)
 - make the manual mode rotations less sensitive
+- Fix panic mode speed
+- Fix panic if no commands received
+- Create fixed point
 
 Complete (to be tested):
 - escape -> panic mode -> exit
 - mapp all keyboard settings as described in assignment (including trimming of joystick)
-- panic if no commands received

@@ -12,6 +12,25 @@
 
 #include "in4073.h"
 
+//Kalman parameters
+int p = 0;
+int p_b = 0;
+int P2PHI = 268;
+int C1_p = 1000;
+int C2_p = 1000000;
+int P1_p = 0;
+int P2_p = 0;
+int roll_setpoint = 0;
+
+int t = 0;
+int t_b = 0;
+int P2THETA = 268;
+int C1_t = 1000;
+int C2_t = 1000000;
+int P1_t = 0;
+int P2_t = 0;
+int pitch_setpoint = 0;
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
@@ -67,7 +86,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
  					ae[i] -= MIN(ae[i] - setpoint, PANIC_MODE_STEP_SIZE);
  				}
 			}
-			
+
 			setpoint = MAX(0, setpoint - PANIC_MODE_STEP_SIZE);
 
 
@@ -79,7 +98,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 				printf("Panic mode is done, go to safe mode\n");
 			}
-	
+
 		break;
 		}
 
@@ -122,25 +141,25 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case CALIBRATION_MODE:
 		{
-			if (!in_calibration_mode)
-			{
-				cal_phi = phi;
-				cal_theta = theta;
-				cal_psi = psi;
-				cal_sp = sp;
-				cal_sq = sq;
-				cal_sr = sr;
-				cal_sax = sax;
-				cal_say = say;
-				cal_saz = saz;
+
+			if (!in_calibration_mode) 
+      		{
+				cal_phi = phi;		//roll x angle
+				cal_theta = theta;	//pitch y angle
+				cal_psi = psi;		//yaw z angle
+				cal_sp = sp;		//x velocity
+				cal_sq = sq;		//y velocity
+				cal_sr = sr;		//z velocity
+				cal_sax = sax;		//x accelleration
+				cal_say = say;		//y accelleration
+				cal_saz = saz;		//z accelleration
 
 				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
 					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 
 				in_calibration_mode = true;
 			}
-
-		break;
+			break;
 		}
 
 		case YAW_CONTROL_MODE:
@@ -153,7 +172,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				ae[3] =0;
 
 				break;
-			} 
+			}
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
 
@@ -205,8 +224,12 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		break;
 		}
 
+
 		case FULL_CONTROL_MODE:
-		break;
+		{
+
+			break;
+		}
 
 		case RAW_MODE:
 		break;
