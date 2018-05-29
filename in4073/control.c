@@ -214,7 +214,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case TERMINATE_MODE:
 		{
-			// Termination: terminate->panic->safe->exit
+			// Termination sequence: terminate->panic->safe->exit
 			current_mode = PANIC_MODE;
 			exit_in_safe_mode = true;
 			break;

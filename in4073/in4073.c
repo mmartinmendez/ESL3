@@ -50,6 +50,7 @@ int main(void)
 	bool demo_done = false;
 
 	uint32_t counter = 0;
+	uint32_t bat_volt_counter = 0;
 	uint32_t time_last_char_received = get_time_us();
 
 	adc_request_sample(); // request first battery sample
@@ -90,15 +91,20 @@ int main(void)
 			if (counter++%20 == 0) 
 			{
 				nrf_gpio_pin_toggle(BLUE);
-				adc_request_sample();
-				// not sure which outputs the correct battry level
-				printf("bat_volt: %dV or %dV or %dV\n", bat_volt, 
-				bat_volt*3/255*2, bat_volt / 142); 
-
-				// TODO replace with correct bat_volt value
-				if (bat_volt < 0) // bat_volt < 10.5V 
+				
+				if (bat_volt_counter++%8 == 0)
 				{
-					current_mode = PANIC_MODE;
+					adc_request_sample();
+
+					// not sure which outputs the correct battery level
+					printf("bat_volt: %dV or %dV or %dV\n", bat_volt, 
+					bat_volt*3/255*2, bat_volt / 142); 
+
+					// TODO replace with correct bat_volt value
+					if (bat_volt < 0) // bat_volt < 10.5V 
+					{
+						current_mode = PANIC_MODE;
+					}
 				}
 
 				// read_baro();

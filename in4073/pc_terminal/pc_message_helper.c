@@ -58,6 +58,11 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 			data_len = 0;
 			break;
 		}
+		case MSG_SET_P_VALUES:
+		{
+			data_len = sizeof(data.set_p_values);
+			break;
+		}
 		default:
 		{
 			printf("No valid msg_type is being send: %d\n", msg_type);			
@@ -95,6 +100,36 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 			break;
 		}
 
+		case MSG_P_VALUES_UPDATE:
+		{
+			p_values_update_t * data = (p_values_update_t *) &(buffer->data);
+			printf("received p value update: ");
+			switch (data->select)
+			{
+				case P_YAW_CONTROL:
+				{
+					printf("p yaw control");
+					break;
+				}
+				case P1_PITCH_ROLL_CONTROL:
+				{
+					printf("p1");
+					break;
+				}
+				case P2_PITCH_ROLL_CONTROL:
+				{
+					printf("p2");
+					break;
+				}
+				default:
+				{
+					printf("p error");
+				}
+			}
+			printf(", value: %d\n", data->value);
+			break;
+		}
+
 		default:
 		{
 			printf("PC: Received unsupported msg_type: %d\n", 
@@ -110,6 +145,8 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 uint8_t select_message(uint8_t c, message_t * send_buffer)
 {
 	uint8_t retval = 0xFF;
+
+	printf("Received char: %c, value: %d\n", c, c);
 
 	switch(c)
 	{
@@ -157,22 +194,22 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			break;
 		}
 		//TODO verify the arrow values with joystick
-		case 37: // LEFT ARROW 
+		case 's': // LEFT ARROW 
 		{
 			axis_offsets[0] += 1; // roll up
 			break;
 		}
-		case 39: // RIGHT ARROW 
+		case 'x': // RIGHT ARROW 
 		{
 			axis_offsets[0] -= 1; // roll down
 			break;
 		}
-		case 38: // UP ARROW 
+		case 'd': // UP ARROW 
 		{
 			axis_offsets[1] -= 1; // pitch down
 			break;
 		}
-		case 40: // DOWN ARROW 
+		case 'c': // DOWN ARROW 
 		{
 			axis_offsets[1] += 1; // pitch up
 			break;

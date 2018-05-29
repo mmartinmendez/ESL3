@@ -91,11 +91,13 @@ int main(int argc, char **argv)
 					int8_t x = axis_small[i];
 					int8_t y = axis_offsets[i];
 
+					printf("x: %d, y:%d, i:%d\n", x, y, i);
+
 					if ((y > 0) && (x > (127 - y)))
 					{
 						axis_totals[i] = 127; // overflow
 					} 
-					else if ((y < 0) && (x < (127 - y)))
+					else if ((y < 0) && (x < (-127 - y)))
 					{
 					    axis_totals[i] = -127; // underflow
 					}
