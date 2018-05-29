@@ -162,20 +162,20 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			// compensate for calibration error
             int real_sr = sr - cal_sr;
 
+            // cap Esp at +-7000
+            if (real_sr > 2000)
+            {
+            	real_sr = 2000;	
+            } 
+            else if (real_sr < -2000)
+            {
+            	real_sr = -2000;
+            }	
+
             // TODO convert joystick yaw to rate (for now leave at 0)
-            int rate_setpoint = 0; // this is determined by yaw rate of joystick
+            int rate_setpoint = yawdata * 20; // this is determined by yaw rate of joystick
 
             int Eps = rate_setpoint - real_sr ; //can we use psi for this, or is it sr? 
-
-            // cap Esp at +-7000
-            if (Eps > 2000)
-            {
-            	Eps = 2000;	
-            } 
-            else if (Eps < -2000)
-            {
-            	Eps = -2000;
-            }	
 
             // scale eps
             Eps = Eps / 250; // TODO replace this with fixed point
@@ -191,13 +191,14 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
-			#if 0
+			#if 1
 			static int debug_print_counter = 0; //TODO remove this later
 
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d \n", Eps, real_sr, sr, cal_sr);
+				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d | rate_setpoint: %6d \n", 
+					Eps, real_sr, sr, cal_sr, rate_setpoint);
 			}
 			#endif
 

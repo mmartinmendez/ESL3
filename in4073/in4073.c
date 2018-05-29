@@ -56,7 +56,7 @@ int main(void)
 	adc_request_sample(); // request first battery sample
 
 	// give p values initial value
-	p_yaw_control = 10;
+	p_yaw_control = 15;
 	p1 = 0;
 	p2 = 0;
 
