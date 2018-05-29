@@ -150,6 +150,15 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			cal_sax = sax;
 			cal_say = say;
 			cal_saz = saz;
+			cal_phi = phi;		//roll x angle
+			cal_theta = theta;	//pitch y angle
+			cal_psi = psi;		//yaw z angle
+			cal_sp = sp;		//x velocity
+			cal_sq = sq;		//y velocity
+			cal_sr = sr;		//z velocity
+			cal_sax = sax;		//x accelleration
+			cal_say = say;		//y accelleration
+			cal_saz = saz;		//z accelleration
 
 				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
 					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
