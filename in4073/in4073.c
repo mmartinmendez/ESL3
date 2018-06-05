@@ -137,20 +137,14 @@ int main(void)
 				// read_baro();
 			}
 
-			// note to also check that time_last_char is smaller than now
-			//if ((time_last_msg < now) &&
-			//	((now - time_last_msg) > 2000000))
 			uint32_t now = get_time_us();
 			if ((now - time_last_msg) > 1000000)
 			{
-				// we did not receive any char for over 2 seconds -> panic
-				// current_mode = PANIC_MODE;
+				// we did not receive any char for over 1 seconds -> panic
+				current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
-					"go to panic mode (disabled now). now: %lu, "
-					"time_last_msg: %lu\n", 
+					"go to panic mode now: %lu, time_last_msg: %lu\n", 
 					now, time_last_msg);
-
-				// TODO fix this
 			}
 
 			// printf("%10ld | ", get_time_us());
