@@ -11,6 +11,7 @@
  */
 
 #include "in4073.h"
+#include "invensense/inv_mpu.h"
 
 //Kalman parameters
 int p = 0;
@@ -30,6 +31,8 @@ int C2_t = 1000000;
 int P1_t = 0;
 int P2_t = 0;
 int pitch_setpoint = 0;
+
+int raw_mode = false;
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -59,6 +62,10 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			ae[1] =0;
 			ae[2] =0;
 			ae[3] =0;
+
+			if(raw_mode) {
+					mpu_set_dmp_state(1);
+			}
 
 			if (exit_in_safe_mode)
 			{
@@ -142,7 +149,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		case CALIBRATION_MODE:
 		{
 
-			if (!in_calibration_mode) 
+			if (!in_calibration_mode)
       		{
 				cal_phi = phi;		//roll x angle
 				cal_theta = theta;	//pitch y angle
@@ -183,12 +190,12 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             // cap Esp at +-2000
             if (real_sr > 2000)
             {
-            	real_sr = 2000;	
-            } 
+            	real_sr = 2000;
+            }
             else if (real_sr < -2000)
             {
             	real_sr = -2000;
-            }	
+            }
 
  			// this is determined by yaw rate of joystick
             int rate_setpoint = yawdata * 20;
@@ -214,7 +221,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d | rate_setpoint: %6d \n", 
+				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d | rate_setpoint: %6d \n",
 					Eps, real_sr, sr, cal_sr, rate_setpoint);
 			}
 			#endif
@@ -234,7 +241,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 				break;
 			}
-			
+
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
 			/*
 			//yaw control
@@ -247,12 +254,12 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             // cap Esp at +-2000
             if (real_sr > 2000)
             {
-            	real_sr = 2000;	
-            } 
+            	real_sr = 2000;
+            }
             else if (real_sr < -2000)
             {
             	real_sr = -2000;
-            }	
+            }
 
  			// this is determined by yaw rate of joystick
             int rate_setpoint = yawdata * 20;
@@ -265,35 +272,35 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 			// compensate for calibration error
             int real_sax = sax - cal_sax;
-            //int real_say = say - cal_say;
+            int real_say = say - cal_say;
             int real_sp = sp - cal_sp;
-            //int real_sq = sq - cal_sq;
+            int real_sq = sq - cal_sq;
 
             int roll_s = 0; // TODO implement joystick mapping
-            //int pitch_s = 0; // TODO implement joystick mapping
+            int pitch_s = 0; // TODO implement joystick mapping
 
 			int K_s_roll = p1 * (roll_s - real_sax) - p2 * real_sp;
-			// int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
+			int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
 
 			static int debug_print_counter = 0; //TODO remove this later
 
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("K_s_roll: %6d | real_sax: %6d| real_sp: %6d\n", 
+				printf("K_s_roll: %6d | real_sax: %6d| real_sp: %6d\n",
 					K_s_roll, real_sax, real_sp);
 			}
 
 			//To Do Scale K_s values
-			// K_s_roll = K_s_roll / 250;
-			// K_s_pitch = K_s_pitch / 250;
-			
+			K_s_roll = K_s_roll / 250;
+			K_s_pitch = K_s_pitch / 250;
+
 			ae[0] = lift_setpoint + K_s_pitch; //+ P * Eps;
 			ae[1] = lift_setpoint - K_s_roll;  //- P * Eps;
 			ae[2] = lift_setpoint - K_s_pitch; //+ P * Eps;
 			ae[3] = lift_setpoint + K_s_roll;  //- P * Eps;
 
-					
+
 			for (int i = 0; i < 4; i++)
 			{
 				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
@@ -305,7 +312,52 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		}
 
 		case RAW_MODE:
-		break;
+			if(!raw_mode) {
+					mpu_set_dmp_state(0);
+			}
+
+			get_raw_sensor_data();
+
+			if (liftdata == -127) {
+				ae[0] = 0;
+				ae[1] = 0;
+				ae[2] = 0;
+				ae[3] = 0;
+
+				break;
+			}
+
+			int lift_setpoint  = (liftdata + 127 * 2) * 2;
+			int roll_setpoint  = (rolldata + 127 * 2) * 2;
+			int pitch_setpoint  = (pitchdata + 127 * 2) * 2;
+			// int yaw_setpoint  = (yawdata + 127 * 2) * 2;
+
+			// Kalman for p, phi
+			p = cal_sp - p_b;
+			cal_phi = cal_phi + p * P2PHI;
+			cal_phi = cal_phi - (cal_phi - cal_say) / C1_p;
+			p_b = p_b + (cal_phi - cal_say) / C2_p;
+			// Use p, phi in P controller
+			int K_s_p = P1_p * (roll_setpoint - cal_phi) - P2_p * p;
+
+
+			// Kalman for t, theta
+			t = cal_sq - t_b;
+			cal_theta = cal_theta + t * P2THETA;
+			cal_theta = cal_theta - (cal_theta - cal_sax) / C1_t;
+			t_b = t_b + (cal_theta - cal_sax) / C2_t;
+			// Use p, phi in P controller
+			int K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t;
+
+			K_s_t = K_s_t / 250;
+			K_s_p = K_s_p / 250;
+
+			ae[0] = lift_setpoint + K_s_p; //+ P * Eps;
+			ae[1] = lift_setpoint - K_s_t;  //- P * Eps;
+			ae[2] = lift_setpoint - K_s_p; //+ P * Eps;
+			ae[3] = lift_setpoint + K_s_t;  //- P * Eps;
+
+			break;
 
 		case HEIGHT_CONTROL_MODE:
 		break;
