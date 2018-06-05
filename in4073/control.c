@@ -263,7 +263,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
             int rate_setpoint = yawdata * 20;
             int roll_s = rolldata * 200; 
-            int pitch_s = pitchdata * 200; 
+            int pitch_s = - pitchdata * 200; 
 
             // calculate roll/pitch/yaw thorque
 			int K_s_pitch = p1 * (pitch_s + real_sax) - p2 * real_sq;

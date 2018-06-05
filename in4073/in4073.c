@@ -122,10 +122,12 @@ int main(void)
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
-					printf("bat_volt: %dV\n", bat_volt*1*3/255*2); 
+					printf("bat_volt: %dV\n", bat_volt*12/1169); 
+
+					// factor should be 12,1 / 1169
 
 					// TODO replace with correct bat_volt value
-					if ((bat_volt*1*3/255*2) < 11)
+					if ((bat_volt*12/1169) < 11)
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");

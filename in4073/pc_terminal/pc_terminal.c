@@ -84,8 +84,6 @@ int main(int argc, char **argv)
 			update_gui(axis, button);
 			#endif
 
-
-
 			// add keyboard offset to joystick values + check for overflow
 			int8_t axis_totals[4];
 			for (int i = 0; i < 4; i++)
@@ -108,7 +106,6 @@ int main(int argc, char **argv)
 			}
 
 			// send joystick values to DRONE
-
 			send_buffer.data.input_data.roll = axis_totals[0];
 			send_buffer.data.input_data.pitch = axis_totals[1];
 			send_buffer.data.input_data.yaw = axis_totals[2];
@@ -121,15 +118,20 @@ int main(int argc, char **argv)
 				printf("small values: %d | %d | %d | %d\n", 
 					axis_totals[0], axis_totals[1], 
 					axis_totals[2], axis_totals[3]);
-
-				for (int i = 0; i < 12; i++)
-				{
-					printf("button[%i]: %d\n",i,button[i]);
-				}
 			}
 			#endif
-			
 
+			// fire button is pressed, go to panic mode
+			if ((button[0] > 0) && (mode_received != PANIC_MODE))
+			{
+				retval = select_message('1', &send_buffer);
+				if (retval < 0x0F)
+				{
+					mode_requested = retval;
+					t_message_expect = add_time_millis(&t_now, 200);
+				}	
+			}
+			
 			offset_update = false;
 			t_joystick = add_time_millis(&t_now, 10);
 		}
