@@ -78,8 +78,8 @@ int main(void)
 
 	// give p values initial value
 	p_yaw_control = 15;
-	p1 = 0;
-	p2 = 0;
+	p1 = 10;
+	p2 = 10;
 
 	while (!demo_done)
 	{

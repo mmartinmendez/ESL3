@@ -239,17 +239,20 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 			// compensate for calibration error
             int real_sax = sax - cal_sax;
-            //int real_say = say - cal_say;
+            int real_say = say - cal_say;
             int real_sp = sp - cal_sp;
-            //int real_sq = sq - cal_sq;
+            int real_sq = sq - cal_sq;
 
             int roll_s = 0; // TODO implement joystick mapping
-            //int pitch_s = 0; // TODO implement joystick mapping
+            int pitch_s = 0; // TODO implement joystick mapping
 
 			int K_s_roll = p1 * (roll_s - real_sax) - p2 * real_sp;
-			// int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
+			int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
 
 			static int debug_print_counter = 0; //TODO remove this later
+
+			K_s_roll = K_s_roll / 750;
+			K_s_pitch = K_s_pitch / 750;
 
 			if (debug_print_counter++%4 == 0)
 			{
@@ -258,14 +261,10 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 					K_s_roll, real_sax, real_sp);
 			}
 
-			//To Do Scale K_s values
-			// K_s_roll = K_s_roll / 250;
-			// K_s_pitch = K_s_pitch / 250;
-			
-			//ae[0] = lift_setpoint + K_s_pitch; //+ P * Eps;
-			ae[1] = lift_setpoint - K_s_roll;  //- P * Eps;
-			//ae[2] = lift_setpoint - K_s_pitch; //+ P * Eps;
-			ae[3] = lift_setpoint + K_s_roll;  //- P * Eps;
+			ae[0] = lift_setpoint + K_s_pitch;
+			ae[1] = lift_setpoint - K_s_roll; 
+			ae[2] = lift_setpoint - K_s_pitch;
+			ae[3] = lift_setpoint + K_s_roll; 
 
 					
 			for (int i = 0; i < 4; i++)
