@@ -13,7 +13,7 @@
 #include "in4073.h"
 #include "app_timer.h"
  
-uint32_t global_time;
+volatile uint32_t global_time;
 bool timer_flag;
 
 void TIMER2_IRQHandler(void)

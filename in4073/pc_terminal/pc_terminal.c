@@ -91,8 +91,6 @@ int main(int argc, char **argv)
 					int8_t x = axis_small[i];
 					int8_t y = axis_offsets[i];
 
-					printf("x: %d, y:%d, i:%d\n", x, y, i);
-
 					if ((y > 0) && (x > (127 - y)))
 					{
 						axis_totals[i] = 127; // overflow
@@ -108,15 +106,18 @@ int main(int argc, char **argv)
 				}
 
 				// send joystick values to DRONE
+
 				send_buffer.data.input_data.roll = axis_totals[0];
 				send_buffer.data.input_data.pitch = axis_totals[1];
 				send_buffer.data.input_data.yaw = axis_totals[2];
 				send_buffer.data.input_data.lift = axis_totals[3];
 
 				build_and_send_message(MSG_INPUT_DATA, &send_buffer);
+				#ifndef DONT_PRINT_JS_VALUES
 				printf("small values: %d | %d | %d | %d\n", 
 					axis_totals[0], axis_totals[1], 
 					axis_totals[2], axis_totals[3]);
+				#endif
 
 				offset_update = false;
 			}

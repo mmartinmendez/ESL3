@@ -78,8 +78,8 @@ int main(void)
 
 	// give p values initial value
 	p_yaw_control = 15;
-	p1 = 0;
-	p2 = 0;
+	p1 = 10;
+	p2 = 10;
 
 	while (!demo_done)
 	{
@@ -123,11 +123,10 @@ int main(void)
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
-					printf("bat_volt: %dV or %dV or %dV\n", bat_volt, 
-					bat_volt*3/255*2, bat_volt / 142); 
+					printf("bat_volt: %dV\n", bat_volt*6*3*2/1275); 
 
 					// TODO replace with correct bat_volt value
-					if (bat_volt < 0) // bat_volt < 10.5V 
+					if ((bat_volt*6*3*2/1275) < 11)
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");
@@ -137,12 +136,20 @@ int main(void)
 				// read_baro();
 			}
 
-			if (get_time_us() - time_last_char_received > 2000000)
+			uint32_t now = get_time_us();
+
+			// note to also check that time_last_char is smaller than now
+			//if ((time_last_char_received < now) &&
+			//	((now - time_last_char_received) > 2000000))
+
+			if ((now - time_last_char_received) > 2000000)
 			{
 				// we did not receive any char for over 2 seconds -> panic
 				// current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
-					"go to panic mode (disabled now)\n");
+					"go to panic mode (disabled now). now: %lu, "
+					"time_last_char_received: %lu\n", 
+					now, time_last_char_received);
 
 				// TODO fix this
 			}

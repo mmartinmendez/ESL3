@@ -17,8 +17,13 @@ static struct js_event js;
 
 #define JS_DEV	"/dev/input/js1"
 
+
 void init_joystick ()
 {
+	#ifdef DONT_USE_JS
+	return;
+	#endif
+
 	if ((fd = open(JS_DEV, O_RDONLY)) < 0) {
 		perror("jstest");
 		exit(1);
@@ -32,6 +37,14 @@ void init_joystick ()
 // returns true when a new value is read
 bool read_joystick (int8_t axis_small[], int button[])
 {
+	#ifdef DONT_USE_JS
+	axis_small[0] = 0;
+	axis_small[1] = 0;
+	axis_small[2] = 0;
+	axis_small[3] = -127;
+	return true;
+	#endif
+
 	bool values_updated = false;
 	/* check up on JS
 	 */

@@ -243,32 +243,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-			/*
-			//yaw control
-
-			int P = p_yaw_control;
-
-			// compensate for calibration error
-   	        int real_sr = sr - cal_sr;
-
-            // cap Esp at +-2000
-            if (real_sr > 2000)
-            {
-            	real_sr = 2000;
-            }
-            else if (real_sr < -2000)
-            {
-            	real_sr = -2000;
-            }
-
- 			// this is determined by yaw rate of joystick
-            int rate_setpoint = yawdata * 20;
-            int Eps = rate_setpoint - real_sr ;
-
-            // scale eps
-            Eps = Eps / 250; // TODO replace this with fixed point
-
-			*/
 
 			// compensate for calibration error
             int real_sax = sax - cal_sax;
@@ -284,6 +258,9 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 			static int debug_print_counter = 0; //TODO remove this later
 
+			K_s_roll = K_s_roll / 750;
+			K_s_pitch = K_s_pitch / 750;
+
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
@@ -291,14 +268,10 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 					K_s_roll, real_sax, real_sp);
 			}
 
-			//To Do Scale K_s values
-			K_s_roll = K_s_roll / 250;
-			K_s_pitch = K_s_pitch / 250;
-
-			ae[0] = lift_setpoint + K_s_pitch; //+ P * Eps;
-			ae[1] = lift_setpoint - K_s_roll;  //- P * Eps;
-			ae[2] = lift_setpoint - K_s_pitch; //+ P * Eps;
-			ae[3] = lift_setpoint + K_s_roll;  //- P * Eps;
+			ae[0] = lift_setpoint + K_s_pitch;
+			ae[1] = lift_setpoint - K_s_roll; 
+			ae[2] = lift_setpoint - K_s_pitch;
+			ae[3] = lift_setpoint + K_s_roll; 
 
 
 			for (int i = 0; i < 4; i++)
