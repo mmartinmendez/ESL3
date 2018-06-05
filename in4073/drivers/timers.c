@@ -14,7 +14,7 @@
 #include "app_timer.h"
  
 volatile uint32_t global_time;
-bool timer_flag;
+volatile bool timer_flag;
 
 void TIMER2_IRQHandler(void)
 {

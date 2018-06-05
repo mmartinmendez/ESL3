@@ -22,6 +22,7 @@
 #define DONT_USE_JS
 #define DONT_PRINT_JS_VALUES
 #define DONT_CHECK_BATVOLT
+#define DONT_CHECK_MSG_TIMEOUT
 #endif
 
 #pragma pack(1)

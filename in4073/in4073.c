@@ -78,8 +78,11 @@ int main(void)
 
 	// give p values initial value
 	p_yaw_control = 0; // desired 15
-	p1 = 0; // desired 3
-	p2 = 0; // desired 15
+	p1 = 0; // desired 7
+	p2 = 0; // desired 30
+
+	//TODO remove this
+	
 
 	while (!demo_done)
 	{
@@ -88,6 +91,11 @@ int main(void)
 		{
 			get_dmp_data();
 			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+
+			#if 0
+			static int counter_int_flag = 0;
+			printf("Counter: %d, timestamp: %lu\n", counter_int_flag++, get_time_us());
+			#endif
 		}
 
 		if (rx_queue.count)
@@ -141,11 +149,13 @@ int main(void)
 			uint32_t now = get_time_us();
 			if ((now - time_last_msg) > 1000000)
 			{
+				#ifndef DONT_CHECK_MSG_TIMEOUT
 				// we did not receive any char for over 1 seconds -> panic
 				current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
 					"go to panic mode now: %lu, time_last_msg: %lu\n", 
 					now, time_last_msg);
+				#endif
 			}
 
 			// printf("%10ld | ", get_time_us());
