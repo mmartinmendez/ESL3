@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "joystick.h"
+#include "../message/message.h"
 
 static int fd;
 static struct js_event js;

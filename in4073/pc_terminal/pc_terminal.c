@@ -112,14 +112,14 @@ int main(int argc, char **argv)
 			send_buffer.data.input_data.lift = axis_totals[3];
 
 			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
-			#ifndef DONT_PRINT_JS_VALUES
 			if (joystick_update || offset_update)
 			{
+			#ifndef DONT_PRINT_JS_VALUES
 				printf("small values: %d | %d | %d | %d\n", 
 					axis_totals[0], axis_totals[1], 
 					axis_totals[2], axis_totals[3]);
-			}
 			#endif
+			}
 
 			// fire button is pressed, go to panic mode
 			if ((button[0] > 0) && (mode_received != PANIC_MODE))
@@ -185,8 +185,6 @@ int main(int argc, char **argv)
 				t_message_expect = add_time_millis(&t_now, 200);
 			}
 		}
-
-		debug_printf("Checking counter: %d\n", counter++);
 	}
 
 	term_exitio();

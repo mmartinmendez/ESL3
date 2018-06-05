@@ -39,9 +39,6 @@
 
 #define JS_VERSION		0x020100
 
-// #define DONT_USE_JS
-// #define DONT_PRINT_JS_VALUES
-
 /*
  * Types and constants for reading from /dev/js
  */

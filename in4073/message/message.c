@@ -42,10 +42,6 @@ bool validate_message(uint8_t * buffer, uint8_t buffer_len, char * source)
 	message_ptr->crc = 0;
 	crc_calculated = crc_fast((unsigned char const*) message_ptr, buffer_len);
 
-	debug_printf("%s: message type: 0x%X, crc_received: 0x%X, "
-		"crc_calculated: 0x%X, length: %d\n", source, message_ptr->message_type,
-		crc_received, crc_calculated, buffer_len);
-
 	return (crc_received == crc_calculated);
 }
 

@@ -280,7 +280,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			ae[2] = lift_setpoint + K_s_pitch 	+ p_yaw_control * Eps;
 			ae[3] = lift_setpoint + K_s_roll 	- p_yaw_control * Eps;
 
-
 			for (int i = 0; i < 4; i++)
 			{
 				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
@@ -303,7 +302,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case RAW_MODE:
 			if(!raw_mode) {
-					mpu_set_dmp_state(0);
+				mpu_set_dmp_state(0);
 			}
 
 			get_raw_sensor_data();
@@ -369,8 +368,8 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 	}
 
 	// update in_state booleans
-	if(current_mode != PANIC_MODE) in_panic_mode = false;
-	if(current_mode != CALIBRATION_MODE) in_calibration_mode = false;
+	if (current_mode != PANIC_MODE) in_panic_mode = false;
+	if (current_mode != CALIBRATION_MODE) in_calibration_mode = false;
 
 	update_motors();
 }
