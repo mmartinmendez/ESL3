@@ -5,6 +5,7 @@ Todo:
 - Fix panic mode speed
 - Fix panic if no commands received
 - Create fixed point
+- Check calibration data after 8 sec or so
 
 Complete (to be tested):
 - escape -> panic mode -> exit

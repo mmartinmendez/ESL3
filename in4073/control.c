@@ -234,45 +234,62 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 				break;
 			}
-			
-			int lift_setpoint  = (liftdata + 127 * 2) * 2;
 
 			// compensate for calibration error
             int real_sax = sax - cal_sax;
             int real_say = say - cal_say;
             int real_sp = sp - cal_sp;
             int real_sq = sq - cal_sq;
+            int real_sr = sr - cal_sr;
 
-            int roll_s = 0; // TODO implement joystick mapping
-            int pitch_s = 0; // TODO implement joystick mapping
+            // cap Esp at +-2000
+            if (real_sr > 2000)
+            {
+            	real_sr = 2000;	
+            } 
+            else if (real_sr < -2000)
+            {
+            	real_sr = -2000;
+            }
 
-			int K_s_roll = p1 * (roll_s - real_sax) - p2 * real_sp;
-			int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
+            // create setpoints
+			int lift_setpoint  = (liftdata + 127 * 2) * 2;
+            int rate_setpoint = yawdata * 20;
+            int roll_s = rolldata * 200; 
+            int pitch_s = pitchdata * 200; 
 
-			static int debug_print_counter = 0; //TODO remove this later
+            // calculate roll/pitch/yaw thorque
+			int K_s_pitch = p1 * (pitch_s + real_sax) - p2 * real_sq;
+			int K_s_roll = p1 * (roll_s - real_say) - p2 * real_sp;
+            int Eps = rate_setpoint - real_sr ;
 
+			// scale thorque to rpm
 			K_s_roll = K_s_roll / 750;
 			K_s_pitch = K_s_pitch / 750;
+            Eps = Eps / 250;
 
-			if (debug_print_counter++%4 == 0)
-			{
-				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("K_s_roll: %6d | real_sax: %6d| real_sp: %6d\n", 
-					K_s_roll, real_sax, real_sp);
-			}
+			ae[0] = lift_setpoint - K_s_pitch 	+ p_yaw_control * Eps;
+			ae[1] = lift_setpoint - K_s_roll 	- p_yaw_control * Eps;
+			ae[2] = lift_setpoint + K_s_pitch 	+ p_yaw_control * Eps;
+			ae[3] = lift_setpoint + K_s_roll 	- p_yaw_control * Eps;
 
-			ae[0] = lift_setpoint + K_s_pitch;
-			ae[1] = lift_setpoint - K_s_roll; 
-			ae[2] = lift_setpoint - K_s_pitch;
-			ae[3] = lift_setpoint + K_s_roll; 
 
-					
 			for (int i = 0; i < 4; i++)
 			{
 				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
+			#if 1
+			static int debug_print_counter = 0; //TODO remove this later
+			
+			if (debug_print_counter++%4 == 0)
+			{
+				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
+				printf("K_s_roll: %6d | K_s_pitch: %6d | roll_s: %6d | pitch_s: %6d \n", 
+					K_s_roll, K_s_pitch, roll_s, pitch_s);
+			}
+			#endif
 
 			break;
 		}

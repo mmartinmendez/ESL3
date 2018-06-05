@@ -72,14 +72,14 @@ int main(void)
 
 	uint32_t counter = 0;
 	uint32_t bat_volt_counter = 0;
-	uint32_t time_last_char_received = get_time_us();
+	uint32_t time_last_msg = get_time_us();
 
 	adc_request_sample(); // request first battery sample
 
 	// give p values initial value
-	p_yaw_control = 15;
-	p1 = 10;
-	p2 = 10;
+	p_yaw_control = 0; // desired 15
+	p1 = 0; // desired 3
+	p2 = 0; // desired 15
 
 	while (!demo_done)
 	{
@@ -94,8 +94,6 @@ int main(void)
 		{
 			c = dequeue(&rx_queue);
 
-			time_last_char_received = get_time_us();
-
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, receive_buffer, "DRONE");
 
@@ -109,6 +107,7 @@ int main(void)
 					current_mode = retval;
 				}
 
+				time_last_msg = get_time_us();
 			}	
 		} 
 
@@ -123,10 +122,10 @@ int main(void)
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
-					printf("bat_volt: %dV\n", bat_volt*6*3*2/1275); 
+					printf("bat_volt: %dV\n", bat_volt*1*3/255*2); 
 
 					// TODO replace with correct bat_volt value
-					if ((bat_volt*6*3*2/1275) < 11)
+					if ((bat_volt*1*3/255*2) < 11)
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");
@@ -136,20 +135,18 @@ int main(void)
 				// read_baro();
 			}
 
-			uint32_t now = get_time_us();
-
 			// note to also check that time_last_char is smaller than now
-			//if ((time_last_char_received < now) &&
-			//	((now - time_last_char_received) > 2000000))
-
-			if ((now - time_last_char_received) > 2000000)
+			//if ((time_last_msg < now) &&
+			//	((now - time_last_msg) > 2000000))
+			uint32_t now = get_time_us();
+			if ((now - time_last_msg) > 1000000)
 			{
 				// we did not receive any char for over 2 seconds -> panic
 				// current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
 					"go to panic mode (disabled now). now: %lu, "
-					"time_last_char_received: %lu\n", 
-					now, time_last_char_received);
+					"time_last_msg: %lu\n", 
+					now, time_last_msg);
 
 				// TODO fix this
 			}

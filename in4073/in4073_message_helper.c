@@ -127,7 +127,7 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 
 static void change_p_values(set_p_values_t * data)
 {
-	uint8_t * selected_p_value;
+	int8_t * selected_p_value;
 	switch (data->select)
 	{
 		case P_YAW_CONTROL:
@@ -156,7 +156,11 @@ static void change_p_values(set_p_values_t * data)
 	{
 		case INCREMENT:
 		{
-			*selected_p_value += data->value;
+			// prevent overflow
+			if (*selected_p_value < 126)
+			{
+				*selected_p_value += data->value;
+			}
 			break;
 		}
 		case DECREMENT:
