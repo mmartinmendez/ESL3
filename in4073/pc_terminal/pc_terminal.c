@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	// other
 	bool demo_done = false;
 	bool offset_update = false;
+	bool enable_drone_print = true;
 	uint8_t retval = 0;
 
 	memset(axis_small,0,sizeof(axis_small));
@@ -136,6 +137,7 @@ int main(int argc, char **argv)
 			t_joystick = add_time_millis(&t_now, 10);
 		}
 
+		// read chars from keyboard
 		if ((c = term_getchar_nb()) != -1)
 		{
 			retval = select_message(c, &send_buffer);
@@ -151,11 +153,25 @@ int main(int argc, char **argv)
 			}
 		}
 
+		// read chars from drone
 		if ((c = rs232_getchar_nb()) != -1)
 		{
 			uint8_t message_len;
 
-			putchar(c);
+			// if start byte is send, stop printing data until end byte
+			if (c  == START_BYTE)
+			{
+				enable_drone_print = false;
+			} 
+			if (enable_drone_print) 
+			{
+				putchar(c);
+			}
+			if (c == END_BYTE)
+			{
+				enable_drone_print = true;
+			}
+
 
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");

@@ -80,6 +80,33 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 	}
 }
 
+char* get_mode_name(uint8_t mode)
+{
+	char* mode_names[10] = 
+	{	
+		"SAFE MODE",			// 0
+		"PANIC_MODE",			// 1
+		"MANUAL_MODE",			// 2
+		"CALIBRATION_MODE",		// 3
+		"YAW_CONTROL_MODE",		// 4
+		"FULL_CONTROL_MODE",	// 5
+		"RAW_MODE",				// 6
+		"HEIGHT_CONTROL_MODE",	// 7
+		"WIRELESS_MODE",		// 8
+		"TERMINATE_MODE"		// 9
+	};
+
+	if (mode < 10)
+	{
+		return mode_names[mode];
+	}
+	else
+	{
+		return "mode not found";
+	}
+
+}
+
 uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 {
 	uint8_t retval = 0xFF;
@@ -89,7 +116,8 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 		case MSG_MODE_UPDATE:
 		{
 			mode_update_t * data = (mode_update_t*) &(buffer->data);
-			printf("PC: Received mode update command, mode: %d\n", data->mode);
+			printf("PC: Received mode update command, mode: %d --> %s\n",
+				data->mode, get_mode_name(data->mode));
 			retval = data->mode;
 			break;
 		}
@@ -145,8 +173,6 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 uint8_t select_message(uint8_t c, message_t * send_buffer)
 {
 	uint8_t retval = 0xFF;
-
-	printf("Received char: %c, value: %d\n", c, c);
 
 	switch(c)
 	{
