@@ -81,9 +81,6 @@ int main(void)
 	p1 = 0; // desired 7
 	p2 = 0; // desired 30
 
-	//TODO remove this
-	
-
 	while (!demo_done)
 	{
 
@@ -134,7 +131,6 @@ int main(void)
 
 					// factor should be 12,1 / 1169
 
-					// TODO replace with correct bat_volt value
 					if ((bat_volt*12/1169) <= 11)
 					{
 						current_mode = PANIC_MODE;

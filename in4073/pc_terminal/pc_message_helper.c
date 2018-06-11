@@ -158,6 +158,19 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 			break;
 		}
 
+		case MSG_CALIBRATION_DATA:
+		{
+			calibration_data_t * data = (calibration_data_t *) &(buffer->data);
+			printf("Received calibration data: \n"
+				"phi: %d, theta: %d, psi: %d\n"
+				"sp: %d, sq: %d, sr: %d\n"
+				"sax: %d, say: %d, saz: %d\n",
+				data->phi, data->theta, data->psi,
+				data->sp, data->sq, data->sr,
+				data->sax, data->say, data->saz);
+			break;
+		}
+
 		default:
 		{
 			printf("PC: Received unsupported msg_type: %d\n", 

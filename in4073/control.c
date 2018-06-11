@@ -148,7 +148,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case CALIBRATION_MODE:
 		{
-
 			if (!in_calibration_mode)
       		{
 				cal_phi = phi;		//roll x angle
@@ -160,6 +159,21 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				cal_sax = sax;		//x accelleration
 				cal_say = say;		//y accelleration
 				cal_saz = saz;		//z accelleration
+
+				uint32_t now = get_time_us();
+				if(now < 15000000)
+				{
+					printf("WARNING: only %lu us have passed,"
+						"the calibration may not be finshed yet\n", now);
+				}
+
+				printf("Calibration data: \n"
+					"phi: %d, theta: %d, psi: %d\n"
+					"sp: %d, sq: %d, sr: %d\n"
+					"sax: %d, say: %d, saz: %d\n",
+					phi, theta, psi,
+					sp, sq, sr,
+					sax, say, saz);
 
 				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
 					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);

@@ -119,7 +119,7 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 	message_len = build_message(MSG_CALIBRATION_DATA, (uint8_t *) &data, 
 			sizeof(data), send_buffer);
 
-		if (message_len > 0)
+	if (message_len > 0)
 	{
 		send_message(send_buffer, message_len);
 	}
