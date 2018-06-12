@@ -270,6 +270,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             int real_sq = sq - cal_sq;
             int real_sr = sr - cal_sr;
 
+			#if 1
             // cap Esp at +-2000
             if (real_sr > CAP_VALUE_YAW)
             {
@@ -279,22 +280,23 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             {
             	real_sr = -CAP_VALUE_YAW;
             }
+            #endif 
 
             // create setpoints
-			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-            int rate_setpoint = yawdata * 20;
-            int roll_s = rolldata * 200; 
-            int pitch_s = - pitchdata * 200; 
+			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
+            int rate_setpoint = yawdata * 20; // was 20
+            int roll_s = rolldata * 50; 
+            int pitch_s = - pitchdata * 50; 
 
             // calculate roll/pitch/yaw thorque
-			int K_s_pitch = p1 * (pitch_s + real_sax) - p2 * real_sq;
-			int K_s_roll = p1 * (roll_s - real_say) - p2 * real_sp;
+			int K_s_pitch = p1 * (pitch_s + real_sax) / 2 - p2 * real_sq;
+			int K_s_roll = p1 * (roll_s - real_say) / 2 - p2 * real_sp;
             int Eps = rate_setpoint - real_sr ;
 
 			// scale thorque to rpm
 			K_s_roll = K_s_roll / 750;
 			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 250;
+            Eps = Eps / 250; // was 250
 
 			ae[0] = lift_setpoint - K_s_pitch 	+ p_yaw_control * Eps;
 			ae[1] = lift_setpoint - K_s_roll 	- p_yaw_control * Eps;
@@ -307,7 +309,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
-			#if 1
+			#if 0
 			static int debug_print_counter = 0; //TODO remove this later
 			
 			if (debug_print_counter++%4 == 0)
