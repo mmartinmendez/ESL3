@@ -50,6 +50,10 @@ int main(void)
 	
 	bool demo_done = false;
 
+<<<<<<< HEAD
+=======
+	#if 0
+>>>>>>> master
 	uint8_t data[15] = {0};
 	uint32_t free_pointer = 0x000000;
 	uint8_t buttons_123 = 0 ; //+ button_1*100 + button_2*10 + button_3*1 ;
@@ -67,23 +71,38 @@ int main(void)
 	uint8_t	motor_2_percent = 0; 
 	uint8_t	motor_3_percent = 0;
 	uint8_t	motor_4_percent = 0; 
+<<<<<<< HEAD
 
 	uint32_t counter = 0;
 	uint32_t bat_volt_counter = 0;
 	uint32_t time_last_char_received = get_time_us();
+=======
+	#endif
+
+	uint32_t counter = 0;
+	uint32_t bat_volt_counter = 0;
+	uint32_t time_last_msg = get_time_us();
+>>>>>>> master
 
 	adc_request_sample(); // request first battery sample
 
 	// give p values initial value
+<<<<<<< HEAD
 	p_yaw_control = 10;
 	p1 = 0;
 	p2 = 0;
+=======
+	p_yaw_control = 0; // desired 15
+	p1 = 0; // desired 7
+	p2 = 0; // desired 30
+>>>>>>> master
 
 	while (!demo_done)
 	{
 
 		if (check_sensor_int_flag()) 
 		{
+<<<<<<< HEAD
 			get_dmp_data();
 			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
 		}
@@ -94,6 +113,30 @@ int main(void)
 
 			time_last_char_received = get_time_us();
 
+=======
+			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+			get_dmp_data();
+			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+
+			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
+			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
+
+			#if 0
+			static int counter_int_flag = 0;
+			printf("Counter: %d, timestamp: %lu\n", counter_int_flag++, get_time_us());
+			#endif
+
+			
+		}
+
+		// read chars from PC
+		if (rx_queue.count)
+		{
+			nrf_gpio_pin_set(LA_PIN_3); // logic analyzer
+			c = dequeue(&rx_queue);
+
+>>>>>>> master
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, receive_buffer, "DRONE");
 
@@ -107,17 +150,28 @@ int main(void)
 					current_mode = retval;
 				}
 
+<<<<<<< HEAD
 			}	
+=======
+				time_last_msg = get_time_us();
+			}
+			nrf_gpio_pin_clear(LA_PIN_3); // logic analyzer
+>>>>>>> master
 		} 
 
 		if (check_timer_flag()) 
 		{
+<<<<<<< HEAD
+=======
+			nrf_gpio_pin_set(LA_PIN_4); // logic analyzer
+>>>>>>> master
 			if (counter++%20 == 0) 
 			{
 				nrf_gpio_pin_toggle(BLUE);
 				
 				if (bat_volt_counter++%8 == 0)
 				{
+<<<<<<< HEAD
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
@@ -126,15 +180,29 @@ int main(void)
 
 					// TODO replace with correct bat_volt value
 					if (bat_volt < 0) // bat_volt < 10.5V 
+=======
+					#ifndef DONT_CHECK_BATVOLT
+					adc_request_sample();
+
+					printf("bat_volt: %dV\n", bat_volt*12/1169); 
+
+					// real factor should be 12,1 / 1169
+					if ((bat_volt*12/1169) <= 11)
+>>>>>>> master
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");
 					}
+<<<<<<< HEAD
+=======
+					#endif
+>>>>>>> master
 				}
 
 				// read_baro();
 			}
 
+<<<<<<< HEAD
 			if (get_time_us() - time_last_char_received > 2000000)
 			{
 				// we did not receive any char for over 2 seconds -> panic
@@ -143,6 +211,18 @@ int main(void)
 					"go to panic mode (disabled now)\n");
 
 				// TODO fix this
+=======
+			uint32_t now = get_time_us();
+			if ((now - time_last_msg) > 1000000)
+			{
+				#ifndef DONT_CHECK_MSG_TIMEOUT
+				// we did not receive any char for over 1 seconds -> panic
+				current_mode = PANIC_MODE;
+				printf("We did not receive any char for over 2 seconds, "
+					"go to panic mode now: %lu, time_last_msg: %lu\n", 
+					now, time_last_msg);
+				#endif
+>>>>>>> master
 			}
 
 			// printf("%10ld | ", get_time_us());
@@ -152,6 +232,10 @@ int main(void)
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();
+<<<<<<< HEAD
+=======
+			nrf_gpio_pin_clear(LA_PIN_4); // logic analyzer
+>>>>>>> master
 		}
 	}	
 

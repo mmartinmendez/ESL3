@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "message.h"
 #include "crc.h"
 
@@ -12,7 +14,9 @@ uint8_t build_message(uint8_t message_type, uint8_t* message_data,
 	message->message_type = message_type;
 
 	if (data_len > sizeof(message->data))
+	{
 		return 0;
+	}
 	
 	memcpy((void*) &(message->data), message_data, data_len);
 
@@ -33,7 +37,9 @@ bool validate_message(uint8_t * buffer, uint8_t buffer_len, char * source)
 
 	// if we receive more bytes than we expect, return
 	if(buffer_len > sizeof(message_t))
+	{
 		return false;
+	}
 
 	// store the received crc
 	crc_received = message_ptr->crc;
@@ -41,10 +47,6 @@ bool validate_message(uint8_t * buffer, uint8_t buffer_len, char * source)
 	// calculte the crc
 	message_ptr->crc = 0;
 	crc_calculated = crc_fast((unsigned char const*) message_ptr, buffer_len);
-
-	debug_printf("%s: message type: 0x%X, crc_received: 0x%X, "
-		"crc_calculated: 0x%X, length: %d\n", source, message_ptr->message_type,
-		crc_received, crc_calculated, buffer_len);
 
 	return (crc_received == crc_calculated);
 }

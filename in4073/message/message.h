@@ -17,8 +17,13 @@
 #define END_BYTE 	0x13
 #define ESCAPE		0x7D
 
-#define debug_printf(...) //printf(__VA_ARGS__) 
-#define ENABLE_4073_PRINT 
+// enable these defines if you test without the actual drone and joystick
+#if 0
+#define DONT_USE_JS
+#define DONT_PRINT_JS_VALUES
+#define DONT_CHECK_BATVOLT
+#define DONT_CHECK_MSG_TIMEOUT
+#endif
 
 #pragma pack(1)
 
