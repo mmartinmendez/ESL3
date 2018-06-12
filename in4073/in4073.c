@@ -30,7 +30,7 @@ int main(void)
 	timers_init();
 	adc_init();
 	twi_init();
-	imu_init(true, 100);	
+	imu_init(true, 100);
 	baro_init();
 	spi_flash_init();
 	flash_chip_erase();
@@ -47,8 +47,9 @@ int main(void)
 	uint8_t message_len = 0;
 	uint8_t c;
 	uint8_t retval = 0;
-	
+
 	bool demo_done = false;
+	bool raw_mode_flag = false;
 
 	#if 0
 	uint8_t data[15] = {0};
@@ -65,9 +66,9 @@ int main(void)
 	uint8_t roll_x_percent = 0;
 	uint8_t roll_y_percent = 0;
 	uint8_t motor_1_percent = 0;
-	uint8_t	motor_2_percent = 0; 
+	uint8_t	motor_2_percent = 0;
 	uint8_t	motor_3_percent = 0;
-	uint8_t	motor_4_percent = 0; 
+	uint8_t	motor_4_percent = 0;
 	#endif
 
 	uint32_t counter = 0;
@@ -83,12 +84,28 @@ int main(void)
 
 	while (!demo_done)
 	{
-
-		if (check_sensor_int_flag()) 
-		{
-			get_dmp_data();
-			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+		switch(current_mode) {
+			case RAW_MODE: {
+				if(!raw_mode_flag) {
+					mpu_set_dmp_state(0);
+					raw_mode_flag = true;
+				}
+				get_raw_sensor_data();
+				break;
+			}
+			default: {
+				if(raw_mode_flag) {
+					mpu_set_dmp_state(1);
+					raw_mode_flag = false;
+				}
+				if (check_sensor_int_flag()) {
+					get_dmp_data();
+				}
+				break;
+			}
 		}
+		run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+
 
 		if (rx_queue.count)
 		{
@@ -96,34 +113,34 @@ int main(void)
 
 			time_last_char_received = get_time_us();
 
-			message_len = parse_message(c, &msg_index, 
+			message_len = parse_message(c, &msg_index,
 				&is_escaped, receive_buffer, "DRONE");
 
 			if (message_len > 0)
 			{
 				// we received an end-byte, now handle message
-				retval = handle_message(&send_buffer, receive_buffer, 
-					message_len, &demo_done); 		
+				retval = handle_message(&send_buffer, receive_buffer,
+					message_len, &demo_done);
 				if (retval < 0x0F)
 				{
 					current_mode = retval;
 				}
 
-			}	
-		} 
+			}
+		}
 
-		if (check_timer_flag()) 
+		if (check_timer_flag())
 		{
-			if (counter++%20 == 0) 
+			if (counter++%20 == 0)
 			{
 				nrf_gpio_pin_toggle(BLUE);
-				
+
 				if (bat_volt_counter++%8 == 0)
 				{
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
-					printf("bat_volt: %dV\n", bat_volt*6*3*2/1275); 
+					printf("bat_volt: %dV\n", bat_volt*6*3*2/1275);
 
 					// TODO replace with correct bat_volt value
 					if ((bat_volt*6*3*2/1275) < 11)
@@ -148,7 +165,7 @@ int main(void)
 				// current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
 					"go to panic mode (disabled now). now: %lu, "
-					"time_last_char_received: %lu\n", 
+					"time_last_char_received: %lu\n",
 					now, time_last_char_received);
 
 				// TODO fix this
@@ -162,7 +179,7 @@ int main(void)
 
 			clear_timer_flag();
 		}
-	}	
+	}
 
 	send_terminate(&send_buffer);
 	printf("\n\t Goodbye \n\n");

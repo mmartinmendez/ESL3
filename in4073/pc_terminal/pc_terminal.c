@@ -60,15 +60,15 @@ int main(int argc, char **argv)
 	// init joystick time
   	clock_gettime(CLOCK_MONOTONIC, &t_joystick);
 
-	#ifdef USE_GUI
-  	// start GUI thread
-  	pthread_t gui_thread;
-  	
-	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
-	{
-    	perror("ERROR creating jsfunc thread.");
-	}
-	#endif
+	// #ifdef USE_GUI
+  // 	// start GUI thread
+  // 	pthread_t gui_thread;
+	//
+	// if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
+	// {
+  //   	perror("ERROR creating jsfunc thread.");
+	// }
+	// #endif
 
 	// send & receive
 	while(!demo_done)
@@ -80,9 +80,9 @@ int main(int argc, char **argv)
 			if (read_joystick(axis_small, button) || offset_update)
 			{
 				// only send new data when a change is detected
-				#ifdef USE_GUI
-				update_gui(axis, button);
-				#endif
+				// #ifdef USE_GUI
+				// update_gui(axis, button);
+				// #endif
 
 				// add keyboard offset to joystick values + check for overflow
 				int8_t axis_totals[4];
@@ -91,10 +91,12 @@ int main(int argc, char **argv)
 					int8_t x = axis_small[i];
 					int8_t y = axis_offsets[i];
 
+					// printf("x: %d, y:%d, i:%d\n", x, y, i);
+
 					if ((y > 0) && (x > (127 - y)))
 					{
 						axis_totals[i] = 127; // overflow
-					} 
+					}
 					else if ((y < 0) && (x < (-127 - y)))
 					{
 					    axis_totals[i] = -127; // underflow
@@ -106,18 +108,15 @@ int main(int argc, char **argv)
 				}
 
 				// send joystick values to DRONE
-
 				send_buffer.data.input_data.roll = axis_totals[0];
 				send_buffer.data.input_data.pitch = axis_totals[1];
 				send_buffer.data.input_data.yaw = axis_totals[2];
 				send_buffer.data.input_data.lift = axis_totals[3];
 
 				build_and_send_message(MSG_INPUT_DATA, &send_buffer);
-				#ifndef DONT_PRINT_JS_VALUES
-				printf("small values: %d | %d | %d | %d\n", 
-					axis_totals[0], axis_totals[1], 
+				printf("small values: %d | %d | %d | %d\n",
+					axis_totals[0], axis_totals[1],
 					axis_totals[2], axis_totals[3]);
-				#endif
 
 				offset_update = false;
 			}
@@ -125,7 +124,7 @@ int main(int argc, char **argv)
 			{
 				rs232_putchar(START_BYTE); // heartbeat signal
 			}
-			
+
 			t_joystick = add_time_millis(&t_now, 10);
 		}
 
@@ -150,7 +149,7 @@ int main(int argc, char **argv)
 
 			putchar(c);
 
-			message_len = parse_message(c, &msg_index, 
+			message_len = parse_message(c, &msg_index,
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");
 
 			if (message_len > 0)
@@ -160,12 +159,12 @@ int main(int argc, char **argv)
 				if (retval < 0x0F)
 				{
 					mode_received = retval;
-				} 	
+				}
 				else if (retval == 27)
 				{
 					demo_done = true;
 				}
-			}	
+			}
 		}
 
 		// This means we have set a mode, but not received the mode update yet
@@ -188,4 +187,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-

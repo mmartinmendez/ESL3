@@ -22,7 +22,7 @@ void send_message(message_t * message, uint8_t message_len)
 		{
 			rs232_putchar(ESCAPE);
 			rs232_putchar(*(message_ptr++) ^ 0x20);
-		} 
+		}
 		else
 		{
 			rs232_putchar(*(message_ptr++));
@@ -65,13 +65,13 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 		}
 		default:
 		{
-			printf("No valid msg_type is being send: %d\n", msg_type);			
+			printf("No valid msg_type is being send: %d\n", msg_type);
 			return;
 		}
-	
+
 	}
 
-	message_len = build_message(msg_type, (uint8_t *) &data, data_len, 
+	message_len = build_message(msg_type, (uint8_t *) &data, data_len,
 		send_buffer);
 
 	if (message_len > 0)
@@ -132,7 +132,7 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 
 		default:
 		{
-			printf("PC: Received unsupported msg_type: %d\n", 
+			printf("PC: Received unsupported msg_type: %d\n",
 				buffer->message_type);
 			break;
 		}
@@ -162,6 +162,7 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 		case '2': // MANUAL MODE
 		case '4': // YAW CONTROL MODE
 		case '5': // FULL CONTROL MODE
+		case '6': // RAW CONTROL MODE
 		{
 			// first check if joystick is in 'zero' position
 			if (!is_joystick_zero())
@@ -172,7 +173,7 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			{
 				send_buffer->data.set_mode_data.mode = c - '0';
 				retval = c - '0';
-				build_and_send_message(MSG_SET_MODE, send_buffer);	
+				build_and_send_message(MSG_SET_MODE, send_buffer);
 			}
 			break;
 		}
@@ -184,33 +185,33 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 			build_and_send_message(MSG_SET_MODE, send_buffer);
 			break;
 		}
-		case 'a': 
+		case 'a':
 		{
 			axis_offsets[3] += 1; // lift up
 			break;
 		}
-		case 'z': 
+		case 'z':
 		{
 			axis_offsets[3] -= 1; // lift down
 			break;
 		}
 		//TODO verify the arrow values with joystick
-		case 's': // LEFT ARROW 
+		case 's': // LEFT ARROW
 		{
 			axis_offsets[0] += 1; // roll up
 			break;
 		}
-		case 'x': // RIGHT ARROW 
+		case 'x': // RIGHT ARROW
 		{
 			axis_offsets[0] -= 1; // roll down
 			break;
 		}
-		case 'd': // UP ARROW 
+		case 'd': // UP ARROW
 		{
 			axis_offsets[1] -= 1; // pitch down
 			break;
 		}
-		case 'c': // DOWN ARROW 
+		case 'c': // DOWN ARROW
 		{
 			axis_offsets[1] += 1; // pitch up
 			break;

@@ -15,7 +15,7 @@ static int fd;
 static struct js_event js;
 
 
-#define JS_DEV	"/dev/input/js1"
+#define JS_DEV	"/dev/input/js0"
 
 
 void init_joystick ()
@@ -48,7 +48,7 @@ bool read_joystick (int8_t axis_small[], int button[])
 	bool values_updated = false;
 	/* check up on JS
 	 */
-	while (read(fd, &js, sizeof(struct js_event)) == 
+	while (read(fd, &js, sizeof(struct js_event)) ==
 	       			sizeof(struct js_event))  {
 		values_updated = true;
 
@@ -65,11 +65,11 @@ bool read_joystick (int8_t axis_small[], int button[])
 			case JS_EVENT_AXIS:
 			{
 				axis_small[js.number] = js.value / 256;
-				if (js.number == 3) 
+				if (js.number == 3)
 				{
-					axis_small[3] = - axis_small[3]; // invert lift	
+					axis_small[3] = - axis_small[3]; // invert lift
 				}
-				break;	
+				break;
 			}
 		}
 	}
@@ -99,7 +99,7 @@ bool is_joystick_zero()
 {
 	return (
 		(axis_small[0] == 0) &&
-		(axis_small[1] == 0) && 
+		(axis_small[1] == 0) &&
 		(axis_small[2] == 0) &&
 		(axis_small[3] == -127));
 }

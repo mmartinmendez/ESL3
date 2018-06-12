@@ -32,8 +32,6 @@ int P1_t = 0;
 int P2_t = 0;
 int pitch_setpoint = 0;
 
-int raw_mode = false;
-
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
@@ -62,10 +60,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			ae[1] =0;
 			ae[2] =0;
 			ae[3] =0;
-
-			if(raw_mode) {
-					mpu_set_dmp_state(1);
-			}
 
 			if (exit_in_safe_mode)
 			{
@@ -225,7 +219,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 					Eps, real_sr, sr, cal_sr, rate_setpoint);
 			}
 			#endif
-
+			printf("Motor values: %3d %3d %3d %3d %3d %3d|\n",sp,sq,sr,sax,say,saz);
 		break;
 		}
 
@@ -243,23 +237,46 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
+			/*
+			//yaw control
+
+			int P = p_yaw_control;
 
 			// compensate for calibration error
-            int real_sax = sax - cal_sax;
-            int real_say = say - cal_say;
-            int real_sp = sp - cal_sp;
-            int real_sq = sq - cal_sq;
+   	        int real_sr = sr - cal_sr;
 
-            int roll_s = 0; // TODO implement joystick mapping
-            int pitch_s = 0; // TODO implement joystick mapping
+            // cap Esp at +-2000
+            if (real_sr > 2000)
+            {
+            	real_sr = 2000;
+            }
+            else if (real_sr < -2000)
+            {
+            	real_sr = -2000;
+            }
+
+ 			// this is determined by yaw rate of joystick
+            int rate_setpoint = yawdata * 20;
+            int Eps = rate_setpoint - real_sr ;
+
+            // scale eps
+            Eps = Eps / 250; // TODO replace this with fixed point
+
+			*/
+
+			// compensate for calibration error
+      int real_sax = sax - cal_sax;
+      int real_say = say - cal_say;
+      int real_sp = sp - cal_sp;
+      int real_sq = sq - cal_sq;
+
+      int roll_s = 0; // TODO implement joystick mapping
+      int pitch_s = 0; // TODO implement joystick mapping
 
 			int K_s_roll = p1 * (roll_s - real_sax) - p2 * real_sp;
 			int K_s_pitch = p1 * (pitch_s - real_say) - p2 * real_sq;
 
 			static int debug_print_counter = 0; //TODO remove this later
-
-			K_s_roll = K_s_roll / 750;
-			K_s_pitch = K_s_pitch / 750;
 
 			if (debug_print_counter++%4 == 0)
 			{
@@ -268,10 +285,14 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 					K_s_roll, real_sax, real_sp);
 			}
 
-			ae[0] = lift_setpoint + K_s_pitch;
-			ae[1] = lift_setpoint - K_s_roll; 
-			ae[2] = lift_setpoint - K_s_pitch;
-			ae[3] = lift_setpoint + K_s_roll; 
+			//To Do Scale K_s values
+			K_s_roll = K_s_roll / 250;
+			K_s_pitch = K_s_pitch / 250;
+
+			ae[0] = lift_setpoint + K_s_pitch; //+ P * Eps;
+			ae[1] = lift_setpoint - K_s_roll;  //- P * Eps;
+			ae[2] = lift_setpoint - K_s_pitch; //+ P * Eps;
+			ae[3] = lift_setpoint + K_s_roll;  //- P * Eps;
 
 
 			for (int i = 0; i < 4; i++)
@@ -285,20 +306,22 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		}
 
 		case RAW_MODE:
-			if(!raw_mode) {
-					mpu_set_dmp_state(0);
-			}
+		{
+			// if(!raw_mode) {
+			// 		mpu_set_dmp_state(0);
+			// 		raw_mode = true;
+			// }
 
-			get_raw_sensor_data();
+			// get_raw_sensor_data();
 
-			if (liftdata == -127) {
-				ae[0] = 0;
-				ae[1] = 0;
-				ae[2] = 0;
-				ae[3] = 0;
-
-				break;
-			}
+			// if (liftdata == -127) {
+			// 	ae[0] = 0;
+			// 	ae[1] = 0;
+			// 	ae[2] = 0;
+			// 	ae[3] = 0;
+			//
+			// 	break;
+			// }
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
 			int roll_setpoint  = (rolldata + 127 * 2) * 2;
@@ -322,15 +345,19 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			// Use p, phi in P controller
 			int K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t;
 
-			K_s_t = K_s_t / 250;
-			K_s_p = K_s_p / 250;
+			// K_s_t = K_s_t / 250;
+			// K_s_p = K_s_p / 250;
 
 			ae[0] = lift_setpoint + K_s_p; //+ P * Eps;
 			ae[1] = lift_setpoint - K_s_t;  //- P * Eps;
 			ae[2] = lift_setpoint - K_s_p; //+ P * Eps;
 			ae[3] = lift_setpoint + K_s_t;  //- P * Eps;
 
+
+			printf("Motor values: %3d %3d %3d %3d %3d %3d|\n",sp,sq,sr,sax,say,saz);
+
 			break;
+		}
 
 		case HEIGHT_CONTROL_MODE:
 		break;
