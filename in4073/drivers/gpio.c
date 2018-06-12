@@ -34,7 +34,7 @@ void gpio_init(void)
 	nrf_gpio_pin_set(BLUE);
     	
 	nrf_gpio_cfg_output(LA_PIN_1);
-	nrf_gpio_cfg_output(LA_PIN_2)    	
+	nrf_gpio_cfg_output(LA_PIN_2);   	
 	nrf_gpio_cfg_output(LA_PIN_3);
 	nrf_gpio_cfg_output(LA_PIN_4);
 	nrf_gpio_cfg_output(LA_PIN_5);
