@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	// other
 	bool demo_done = false;
 	bool offset_update = false;
+	bool enable_drone_print = true;
 	uint8_t retval = 0;
 
 	memset(axis_small,0,sizeof(axis_small));
@@ -77,57 +78,66 @@ int main(int argc, char **argv)
 
   		if (compare_time (&t_now, &t_joystick))
 		{
-			if (read_joystick(axis_small, button) || offset_update)
+			bool joystick_update = read_joystick(axis_small, button);
+			
+			// only send new data when a change is detected
+			#ifdef USE_GUI
+			update_gui(axis, button);
+			#endif
+
+			// add keyboard offset to joystick values + check for overflow
+			int8_t axis_totals[4];
+			for (int i = 0; i < 4; i++)
 			{
-				// only send new data when a change is detected
-				#ifdef USE_GUI
-				update_gui(axis, button);
-				#endif
+				int8_t x = axis_small[i];
+				int8_t y = axis_offsets[i];
 
-				// add keyboard offset to joystick values + check for overflow
-				int8_t axis_totals[4];
-				for (int i = 0; i < 4; i++)
+				if ((y > 0) && (x > (127 - y)))
 				{
-					int8_t x = axis_small[i];
-					int8_t y = axis_offsets[i];
-
-					printf("x: %d, y:%d, i:%d\n", x, y, i);
-
-					if ((y > 0) && (x > (127 - y)))
-					{
-						axis_totals[i] = 127; // overflow
-					} 
-					else if ((y < 0) && (x < (-127 - y)))
-					{
-					    axis_totals[i] = -127; // underflow
-					}
-					else
-					{
-					    axis_totals[i] = x + y;
-					}
+					axis_totals[i] = 127; // overflow
+				} 
+				else if ((y < 0) && (x < (-127 - y)))
+				{
+				    axis_totals[i] = -127; // underflow
 				}
+				else
+				{
+				    axis_totals[i] = x + y;
+				}
+			}
 
-				// send joystick values to DRONE
-				send_buffer.data.input_data.roll = axis_totals[0];
-				send_buffer.data.input_data.pitch = axis_totals[1];
-				send_buffer.data.input_data.yaw = axis_totals[2];
-				send_buffer.data.input_data.lift = axis_totals[3];
+			// send joystick values to DRONE
+			send_buffer.data.input_data.roll = axis_totals[0];
+			send_buffer.data.input_data.pitch = axis_totals[1];
+			send_buffer.data.input_data.yaw = axis_totals[2];
+			send_buffer.data.input_data.lift = axis_totals[3];
 
-				build_and_send_message(MSG_INPUT_DATA, &send_buffer);
+			build_and_send_message(MSG_INPUT_DATA, &send_buffer);
+			if (joystick_update || offset_update)
+			{
+			#ifndef DONT_PRINT_JS_VALUES
 				printf("small values: %d | %d | %d | %d\n", 
 					axis_totals[0], axis_totals[1], 
 					axis_totals[2], axis_totals[3]);
-
-				offset_update = false;
+			#endif
 			}
-			else
+
+			// fire button is pressed, go to panic mode
+			if ((button[0] > 0) && (mode_received != PANIC_MODE))
 			{
-				rs232_putchar(START_BYTE); // heartbeat signal
+				retval = select_message('1', &send_buffer);
+				if (retval < 0x0F)
+				{
+					mode_requested = retval;
+					t_message_expect = add_time_millis(&t_now, 200);
+				}	
 			}
 			
+			offset_update = false;
 			t_joystick = add_time_millis(&t_now, 10);
 		}
 
+		// read chars from keyboard
 		if ((c = term_getchar_nb()) != -1)
 		{
 			retval = select_message(c, &send_buffer);
@@ -143,11 +153,24 @@ int main(int argc, char **argv)
 			}
 		}
 
+		// read chars from drone
 		if ((c = rs232_getchar_nb()) != -1)
 		{
 			uint8_t message_len;
 
-			putchar(c);
+			// if start byte is send, stop printing data until end byte
+			if (c  == START_BYTE)
+			{
+				enable_drone_print = false;
+			} 
+			if (enable_drone_print) 
+			{
+				putchar(c);
+			}
+			if (c == END_BYTE)
+			{
+				enable_drone_print = true;
+			}
 
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");
@@ -177,8 +200,6 @@ int main(int argc, char **argv)
 				t_message_expect = add_time_millis(&t_now, 200);
 			}
 		}
-
-		debug_printf("Checking counter: %d\n", counter++);
 	}
 
 	term_exitio();

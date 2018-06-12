@@ -33,10 +33,12 @@ void gpio_init(void)
 	nrf_gpio_pin_set(GREEN);
 	nrf_gpio_pin_set(BLUE);
     	
-	nrf_gpio_cfg_output(19);
-	nrf_gpio_cfg_output(20);
-	nrf_gpio_cfg_output(10);
-	nrf_gpio_cfg_output(8);
+	nrf_gpio_cfg_output(LA_PIN_1);
+	nrf_gpio_cfg_output(LA_PIN_2)    	
+	nrf_gpio_cfg_output(LA_PIN_3);
+	nrf_gpio_cfg_output(LA_PIN_4);
+	nrf_gpio_cfg_output(LA_PIN_5);
+	nrf_gpio_cfg_output(LA_PIN_6);
 	
 	// dmp interrupt - h/w limitation, we cannot setup an interrupt since all gpiote channels are used for the motors
 	nrf_gpio_cfg_input(INT_PIN, 0);
