@@ -11,7 +11,6 @@
  */
 
 #include "in4073.h"
-#include "invensense/inv_mpu.h"
 
 //Kalman parameters
 int p = 0;
@@ -32,12 +31,8 @@ int P1_t = 0;
 int P2_t = 0;
 int pitch_setpoint = 0;
 
-int raw_mode = false;
-
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
-
-#define CAP_VALUE_YAW 3000
 
 void update_motors(void)
 {
@@ -65,10 +60,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			ae[2] =0;
 			ae[3] =0;
 
-			if(raw_mode) {
-					mpu_set_dmp_state(1);
-			}
-
 			if (exit_in_safe_mode)
 			{
 				*demo_done = true;
@@ -95,7 +86,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
  					ae[i] -= MIN(ae[i] - setpoint, PANIC_MODE_STEP_SIZE);
  				}
 			}
-
+			
 			setpoint = MAX(0, setpoint - PANIC_MODE_STEP_SIZE);
 
 
@@ -107,7 +98,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 				printf("Panic mode is done, go to safe mode\n");
 			}
-
+	
 		break;
 		}
 
@@ -150,44 +141,32 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case CALIBRATION_MODE:
 		{
-			if (!in_calibration_mode)
-      		{
-				cal_phi = phi;		//roll x angle
-				cal_theta = theta;	//pitch y angle
-				cal_psi = psi;		//yaw z angle
-				cal_sp = sp;		//x velocity
-				cal_sq = sq;		//y velocity
-				cal_sr = sr;		//z velocity
-				cal_sax = sax;		//x accelleration
-				cal_say = say;		//y accelleration
-				cal_saz = saz;		//z accelleration
-
-				uint32_t now = get_time_us();
-				if(now < 15000000)
-				{
-					printf("WARNING: only %lu us have passed since startup,"
-						"the calibration may not be finshed yet\n", now);
-				}
-				else
-				{
-					printf("%lu us have passed since startup, calibration"
-						"should be safe by now\n", now);
-				}
-
-				printf("Calibration data: \n"
-					"phi: %d, theta: %d, psi: %d\n"
-					"sp: %d, sq: %d, sr: %d\n"
-					"sax: %d, say: %d, saz: %d\n",
-					phi, theta, psi,
-					sp, sq, sr,
-					sax, say, saz);
+			cal_phi = phi;
+			cal_theta = theta;
+			cal_psi = psi;
+			cal_sp = sp;
+			cal_sq = sq;
+			cal_sr = sr;
+			cal_sax = sax;
+			cal_say = say;
+			cal_saz = saz;
+			cal_phi = phi;		//roll x angle
+			cal_theta = theta;	//pitch y angle
+			cal_psi = psi;		//yaw z angle
+			cal_sp = sp;		//x velocity
+			cal_sq = sq;		//y velocity
+			cal_sr = sr;		//z velocity
+			cal_sax = sax;		//x accelleration
+			cal_say = say;		//y accelleration
+			cal_saz = saz;		//z accelleration
 
 				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
 					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 
 				in_calibration_mode = true;
 			}
-			break;
+
+		break;
 		}
 
 		case YAW_CONTROL_MODE:
@@ -200,27 +179,29 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				ae[3] =0;
 
 				break;
-			}
+			} 
 
 			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-			int P = p_yaw_control;
+
+			int P = p_yaw_control; //should be adjustable by keyboard
 
 			// compensate for calibration error
             int real_sr = sr - cal_sr;
 
-            // cap Esp at +-2000
-            if (real_sr > CAP_VALUE_YAW)
-            {
-            	real_sr = CAP_VALUE_YAW;
-            }
-            else if (real_sr < -CAP_VALUE_YAW)
-            {
-            	real_sr = -CAP_VALUE_YAW;
-            }
+            // TODO convert joystick yaw to rate (for now leave at 0)
+            int rate_setpoint = 0; // this is determined by yaw rate of joystick
 
- 			// this is determined by yaw rate of joystick
-            int rate_setpoint = yawdata * 20;
-            int Eps = rate_setpoint - real_sr ;
+            int Eps = rate_setpoint - real_sr ; //can we use psi for this, or is it sr? 
+
+            // cap Esp at +-7000
+            if (Eps > 2000)
+            {
+            	Eps = 2000;	
+            } 
+            else if (Eps < -2000)
+            {
+            	Eps = -2000;
+            }	
 
             // scale eps
             Eps = Eps / 250; // TODO replace this with fixed point
@@ -242,132 +223,40 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d | rate_setpoint: %6d \n",
-					Eps, real_sr, sr, cal_sr, rate_setpoint);
+				printf("Eps: %6d | real_sr: %6d| sr: %6d | cal_sr: %6d \n", Eps, real_sr, sr, cal_sr);
 			}
 			#endif
 
 		break;
 		}
 
-
 		case FULL_CONTROL_MODE:
 		{
 
-			if (liftdata == -127) {
-				ae[0] =0;
-				ae[1] =0;
-				ae[2] =0;
-				ae[3] =0;
+		// Kalman for p, phi
+		p = sp - p_b
+		phi = phi + p * P2PHI
+		phi = phi - (phi - say) / C1_p
+		p_b = p_b + (phi - say) / C2_p
+		// Use p, phi in P controller
+		K_s_p = P1_p * (roll_setpoint - phi) - P2_p * p
 
-				break;
-			}
 
-			// compensate for calibration error
-            int real_sax = sax - cal_sax;
-            int real_say = say - cal_say;
-            int real_sp = sp - cal_sp;
-            int real_sq = sq - cal_sq;
-            int real_sr = sr - cal_sr;
+		// Kalman for t, theta
+		t = sq - t_b
+		theta = theta + t * P2THETA
+		theta = theta - (theta - sax) / C1_t
+		t_b = t_b + (theta - sax) / C2_t
+		// Use p, phi in P controller
+		K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t
 
-            // cap Esp at +-2000
-            if (real_sr > CAP_VALUE_YAW)
-            {
-            	real_sr = CAP_VALUE_YAW;	
-            } 
-            else if (real_sr < -CAP_VALUE_YAW)
-            {
-            	real_sr = -CAP_VALUE_YAW;
-            }
 
-            // create setpoints
-			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-            int rate_setpoint = yawdata * 20;
-            int roll_s = rolldata * 200; 
-            int pitch_s = - pitchdata * 200; 
 
-            // calculate roll/pitch/yaw thorque
-			int K_s_pitch = p1 * (pitch_s + real_sax) - p2 * real_sq;
-			int K_s_roll = p1 * (roll_s - real_say) - p2 * real_sp;
-            int Eps = rate_setpoint - real_sr ;
-
-			// scale thorque to rpm
-			K_s_roll = K_s_roll / 750;
-			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 250;
-
-			ae[0] = lift_setpoint - K_s_pitch 	+ p_yaw_control * Eps;
-			ae[1] = lift_setpoint - K_s_roll 	- p_yaw_control * Eps;
-			ae[2] = lift_setpoint + K_s_pitch 	+ p_yaw_control * Eps;
-			ae[3] = lift_setpoint + K_s_roll 	- p_yaw_control * Eps;
-
-			for (int i = 0; i < 4; i++)
-			{
-				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
-				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
-			}
-
-			#if 1
-			static int debug_print_counter = 0; //TODO remove this later
-			
-			if (debug_print_counter++%4 == 0)
-			{
-				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("K_s_roll: %6d | K_s_pitch: %6d | roll_s: %6d | pitch_s: %6d \n", 
-					K_s_roll, K_s_pitch, roll_s, pitch_s);
-			}
-			#endif
-
-			break;
+		break;
 		}
 
 		case RAW_MODE:
-			if(!raw_mode) {
-				mpu_set_dmp_state(0);
-			}
-
-			get_raw_sensor_data();
-
-			if (liftdata == -127) {
-				ae[0] = 0;
-				ae[1] = 0;
-				ae[2] = 0;
-				ae[3] = 0;
-
-				break;
-			}
-
-			int lift_setpoint  = (liftdata + 127 * 2) * 2;
-			int roll_setpoint  = (rolldata + 127 * 2) * 2;
-			int pitch_setpoint  = (pitchdata + 127 * 2) * 2;
-			// int yaw_setpoint  = (yawdata + 127 * 2) * 2;
-
-			// Kalman for p, phi
-			p = cal_sp - p_b;
-			cal_phi = cal_phi + p * P2PHI;
-			cal_phi = cal_phi - (cal_phi - cal_say) / C1_p;
-			p_b = p_b + (cal_phi - cal_say) / C2_p;
-			// Use p, phi in P controller
-			int K_s_p = P1_p * (roll_setpoint - cal_phi) - P2_p * p;
-
-
-			// Kalman for t, theta
-			t = cal_sq - t_b;
-			cal_theta = cal_theta + t * P2THETA;
-			cal_theta = cal_theta - (cal_theta - cal_sax) / C1_t;
-			t_b = t_b + (cal_theta - cal_sax) / C2_t;
-			// Use p, phi in P controller
-			int K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t;
-
-			K_s_t = K_s_t / 250;
-			K_s_p = K_s_p / 250;
-
-			ae[0] = lift_setpoint + K_s_p; //+ P * Eps;
-			ae[1] = lift_setpoint - K_s_t;  //- P * Eps;
-			ae[2] = lift_setpoint - K_s_p; //+ P * Eps;
-			ae[3] = lift_setpoint + K_s_t;  //- P * Eps;
-
-			break;
+		break;
 
 		case HEIGHT_CONTROL_MODE:
 		break;
@@ -389,8 +278,8 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 	}
 
 	// update in_state booleans
-	if (current_mode != PANIC_MODE) in_panic_mode = false;
-	if (current_mode != CALIBRATION_MODE) in_calibration_mode = false;
+	if(current_mode != PANIC_MODE) in_panic_mode = false;
+	if(current_mode != CALIBRATION_MODE) in_calibration_mode = false;
 
 	update_motors();
 }

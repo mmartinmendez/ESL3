@@ -31,28 +31,22 @@
 #define BLUE		30
 #define INT_PIN		5
 
-
-#define LA_PIN_1	20		// read sensor data
-#define LA_PIN_2	19		// run control loop
-#define LA_PIN_3	8		// read chars and handle message
-#define LA_PIN_4	10		// read bat volt, blink led, check time last msg
-#define LA_PIN_5	5		
-#define LA_PIN_6	6		
-
 #define MAX_RPM		762
 #define MIN_RPM		254
 
 uint8_t current_mode;
 
+// void send_calibration_data(	int16_t phi, int16_t theta, int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, int16_t saz);
+
 // Control
-int8_t p_yaw_control, p1, p2;
+uint8_t p_yaw_control, p1, p2;
 int16_t motor[4],ae[4];
 int8_t liftdata, rolldata, pitchdata, yawdata;
 void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done);
 
 // Timers
 #define TIMER_PERIOD			50 //50ms=20Hz (MAX 23bit, 4.6h)
-#define PANIC_MODE_STEP_SIZE 	TIMER_PERIOD / 24
+#define PANIC_MODE_STEP_SIZE 	TIMER_PERIOD / 4
 void timers_init(void);
 uint32_t get_time_us(void);
 bool check_timer_flag(void);
