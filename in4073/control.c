@@ -12,6 +12,7 @@
 
 #include "in4073.h"
 #include "invensense/inv_mpu.h"
+#include "data_logger.c"
 
 //Kalman parameters
 int p = 0;
@@ -389,10 +390,10 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		default:
 		printf("Not a correct mode");
 	}
-
+	
 	// update in_state booleans
 	if (current_mode != PANIC_MODE) in_panic_mode = false;
 	if (current_mode != CALIBRATION_MODE) in_calibration_mode = false;
-
 	update_motors();
+	log_data();
 }
