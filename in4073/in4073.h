@@ -36,8 +36,6 @@
 #define LA_PIN_2	19		// run control loop
 #define LA_PIN_3	8		// read chars and handle message
 #define LA_PIN_4	10		// read bat volt, blink led, check time last msg
-#define LA_PIN_5	5		
-#define LA_PIN_6	6		
 
 #define MAX_RPM		762
 #define MIN_RPM		254
@@ -89,10 +87,10 @@ bool i2c_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t length, uint8_t con
 bool i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t length, uint8_t *data);
 
 // MPU wrapper
-int16_t phi, theta, psi;
-int16_t sp, sq, sr;
-int16_t cal_sr, cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sax, cal_say, cal_saz;
-int16_t sax, say, saz;
+volatile int16_t phi, theta, psi;
+volatile int16_t sp, sq, sr;
+volatile int16_t cal_sr, cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sax, cal_say, cal_saz;
+volatile int16_t sax, say, saz;
 uint8_t sensor_fifo_count;
 void imu_init(bool dmp, uint16_t interrupt_frequency); // if dmp is true, the interrupt frequency is 100Hz - otherwise 32Hz-8kHz
 void get_dmp_data(void);

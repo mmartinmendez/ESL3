@@ -31,10 +31,10 @@ int main(void)
 	adc_init();
 	twi_init();
 	imu_init(true, 100);	
-	baro_init();
+	//baro_init();
 	spi_flash_init();
 	flash_chip_erase();
-	ble_init();
+	//ble_init();
 	crc_init();
 
 	message_t send_buffer;
@@ -98,7 +98,6 @@ int main(void)
 			static int counter_int_flag = 0;
 			printf("Counter: %d, timestamp: %lu\n", counter_int_flag++, get_time_us());
 			#endif
-
 			
 		}
 
@@ -128,7 +127,6 @@ int main(void)
 
 		if (check_timer_flag()) 
 		{
-			nrf_gpio_pin_set(LA_PIN_4); // logic analyzer
 			if (counter++%20 == 0) 
 			{
 				nrf_gpio_pin_toggle(BLUE);
@@ -171,7 +169,6 @@ int main(void)
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();
-			nrf_gpio_pin_clear(LA_PIN_4); // logic analyzer
 		}
 	}	
 
