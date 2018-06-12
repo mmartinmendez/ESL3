@@ -31,6 +31,13 @@
 #define BLUE		30
 #define INT_PIN		5
 
+#define LA_PIN_1	5
+#define LA_PIN_2	6
+#define LA_PIN_3	20
+#define LA_PIN_4	19
+#define LA_PIN_5	8
+#define LA_PIN_6	10
+
 #define MAX_RPM		762
 #define MIN_RPM		254
 

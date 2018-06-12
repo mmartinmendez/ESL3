@@ -95,6 +95,7 @@ int main(void)
 			#endif
 		}
 
+		// read chars from PC
 		if (rx_queue.count)
 		{
 			c = dequeue(&rx_queue);
@@ -129,8 +130,7 @@ int main(void)
 
 					printf("bat_volt: %dV\n", bat_volt*12/1169); 
 
-					// factor should be 12,1 / 1169
-
+					// real factor should be 12,1 / 1169
 					if ((bat_volt*12/1169) <= 11)
 					{
 						current_mode = PANIC_MODE;

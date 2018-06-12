@@ -172,7 +172,6 @@ int main(int argc, char **argv)
 				enable_drone_print = true;
 			}
 
-
 			message_len = parse_message(c, &msg_index, 
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");
 

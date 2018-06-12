@@ -37,6 +37,8 @@ int raw_mode = false;
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+#define CAP_VALUE_YAW 3000
+
 void update_motors(void)
 {
 	motor[0] = MIN(ae[0],1000);
@@ -163,8 +165,13 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				uint32_t now = get_time_us();
 				if(now < 15000000)
 				{
-					printf("WARNING: only %lu us have passed,"
+					printf("WARNING: only %lu us have passed since startup,"
 						"the calibration may not be finshed yet\n", now);
+				}
+				else
+				{
+					printf("%lu us have passed since startup, calibration"
+						"should be safe by now\n", now);
 				}
 
 				printf("Calibration data: \n"
@@ -202,13 +209,13 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             int real_sr = sr - cal_sr;
 
             // cap Esp at +-2000
-            if (real_sr > 2000)
+            if (real_sr > CAP_VALUE_YAW)
             {
-            	real_sr = 2000;
+            	real_sr = CAP_VALUE_YAW;
             }
-            else if (real_sr < -2000)
+            else if (real_sr < -CAP_VALUE_YAW)
             {
-            	real_sr = -2000;
+            	real_sr = -CAP_VALUE_YAW;
             }
 
  			// this is determined by yaw rate of joystick
@@ -264,13 +271,13 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             int real_sr = sr - cal_sr;
 
             // cap Esp at +-2000
-            if (real_sr > 2000)
+            if (real_sr > CAP_VALUE_YAW)
             {
-            	real_sr = 2000;	
+            	real_sr = CAP_VALUE_YAW;	
             } 
-            else if (real_sr < -2000)
+            else if (real_sr < -CAP_VALUE_YAW)
             {
-            	real_sr = -2000;
+            	real_sr = -CAP_VALUE_YAW;
             }
 
             // create setpoints
