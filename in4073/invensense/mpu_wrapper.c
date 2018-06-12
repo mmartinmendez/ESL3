@@ -11,7 +11,7 @@
 
 #define QUAT_SENS       0x040000000 //1073741824.f //2^30
 
-void update_euler_from_quaternions(int32_t *quat)
+void update_euler_from_quaternions(int32_t *quat) 
 {
 	float q[4];
 
@@ -59,7 +59,6 @@ void get_raw_sensor_data(void)
 
 	if (!(read_stat = mpu_read_fifo(gyro, accel, NULL, &sensors, &sensor_fifo_count)))
 	{
-		printf("inside mpu\n");
 		if (sensors & INV_XYZ_GYRO) //16.4 LSB/deg/s (+-2000 deg/s)  You might need this for Kalman
 		{
 			sp = gyro[0];
@@ -72,8 +71,6 @@ void get_raw_sensor_data(void)
 			say = accel[1];
 			saz = accel[2];
 		}
-	} else {
-		printf("Not here\n");
 	}
 	//else printf("Error reading raw sensor fifo: %d\n", read_stat);
 }
@@ -95,7 +92,7 @@ void imu_init(bool dmp, uint16_t freq)
 	// tap feature is there to set freq to 100Hz, a bug provided by invensense :)
 	uint16_t dmp_features = DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO | DMP_FEATURE_GYRO_CAL | DMP_FEATURE_TAP;
 
-	//mpu
+	//mpu	
 	printf("\rmpu init result: %d\n", mpu_init(NULL));
 	printf("\rmpu set sensors: %d\n", mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL));
 	printf("\rmpu conf fifo  : %d\n", mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL));
@@ -106,7 +103,7 @@ void imu_init(bool dmp, uint16_t freq)
 	{
 		printf("\r\ndmp load firm  : %d\n", dmp_load_motion_driver_firmware());
 		printf("\rdmp set orient : %d\n", dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)));
-
+	
 		printf("\rdmp en features: %d\n", dmp_enable_feature(dmp_features));
 		printf("\rdmp set rate   : %d\n", dmp_set_fifo_rate(100));
 		printf("\rdmp set state  : %d\n", mpu_set_dmp_state(1));

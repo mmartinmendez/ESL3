@@ -49,7 +49,6 @@ int main(void)
 	uint8_t retval = 0;
 
 	bool demo_done = false;
-	bool raw_mode_flag = false;
 
 	#if 0
 	uint8_t data[15] = {0};
@@ -79,33 +78,33 @@ int main(void)
 
 	// give p values initial value
 	p_yaw_control = 15;
-	p1 = 10;
-	p2 = 10;
+	p1 = 0;
+	p2 = 0;
 
 	while (!demo_done)
 	{
-		switch(current_mode) {
-			case RAW_MODE: {
-				if(!raw_mode_flag) {
-					mpu_set_dmp_state(0);
-					raw_mode_flag = true;
-				}
-				get_raw_sensor_data();
-				break;
-			}
-			default: {
-				if(raw_mode_flag) {
-					mpu_set_dmp_state(1);
-					raw_mode_flag = false;
-				}
-				if (check_sensor_int_flag()) {
-					get_dmp_data();
-				}
-				break;
-			}
-		}
-		run_filters_and_control(&send_buffer, bat_volt, &demo_done);
 
+		switch(current_mode) {
+      case RAW_MODE: {
+        if(!raw_mode_flag) {
+          mpu_set_dmp_state(0);
+          raw_mode_flag = true;
+        }
+        get_raw_sensor_data();
+        break;
+      }
+      default: {
+        if(raw_mode_flag) {
+          mpu_set_dmp_state(1);
+          raw_mode_flag = false;
+        }
+        if (check_sensor_int_flag()) {
+          get_dmp_data();
+        }
+        break;
+      }
+    }
+    run_filters_and_control(&send_buffer, bat_volt, &demo_done); 
 
 		if (rx_queue.count)
 		{
@@ -140,10 +139,11 @@ int main(void)
 					adc_request_sample();
 
 					// not sure which outputs the correct battery level
-					printf("bat_volt: %dV\n", bat_volt*6*3*2/1275);
+					printf("bat_volt: %dV or %dV or %dV\n", bat_volt,
+					bat_volt*3/255*2, bat_volt / 142);
 
 					// TODO replace with correct bat_volt value
-					if ((bat_volt*6*3*2/1275) < 11)
+					if (bat_volt < 0) // bat_volt < 10.5V
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");
@@ -153,20 +153,12 @@ int main(void)
 				// read_baro();
 			}
 
-			uint32_t now = get_time_us();
-
-			// note to also check that time_last_char is smaller than now
-			//if ((time_last_char_received < now) &&
-			//	((now - time_last_char_received) > 2000000))
-
-			if ((now - time_last_char_received) > 2000000)
+			if (get_time_us() - time_last_char_received > 2000000)
 			{
 				// we did not receive any char for over 2 seconds -> panic
 				// current_mode = PANIC_MODE;
 				printf("We did not receive any char for over 2 seconds, "
-					"go to panic mode (disabled now). now: %lu, "
-					"time_last_char_received: %lu\n",
-					now, time_last_char_received);
+					"go to panic mode (disabled now)\n");
 
 				// TODO fix this
 			}

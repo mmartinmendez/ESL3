@@ -46,7 +46,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 // Timers
 #define TIMER_PERIOD			50 //50ms=20Hz (MAX 23bit, 4.6h)
-#define PANIC_MODE_STEP_SIZE 	TIMER_PERIOD / 2
+#define PANIC_MODE_STEP_SIZE 	TIMER_PERIOD / 4
 void timers_init(void);
 uint32_t get_time_us(void);
 bool check_timer_flag(void);
@@ -60,7 +60,7 @@ void gpio_init(void);
 typedef struct {
 	uint8_t Data[QUEUE_SIZE];
 	uint16_t first,last;
-  	uint16_t count;
+  	uint16_t count; 
 } queue;
 void init_queue(queue *q);
 void enqueue(queue *q, char x);

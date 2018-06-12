@@ -15,15 +15,10 @@ static int fd;
 static struct js_event js;
 
 
-#define JS_DEV	"/dev/input/js0"
-
+#define JS_DEV	"/dev/input/js1"
 
 void init_joystick ()
 {
-	#ifdef DONT_USE_JS
-	return;
-	#endif
-
 	if ((fd = open(JS_DEV, O_RDONLY)) < 0) {
 		perror("jstest");
 		exit(1);
@@ -37,18 +32,10 @@ void init_joystick ()
 // returns true when a new value is read
 bool read_joystick (int8_t axis_small[], int button[])
 {
-	#ifdef DONT_USE_JS
-	axis_small[0] = 0;
-	axis_small[1] = 0;
-	axis_small[2] = 0;
-	axis_small[3] = -127;
-	return true;
-	#endif
-
 	bool values_updated = false;
 	/* check up on JS
 	 */
-	while (read(fd, &js, sizeof(struct js_event)) ==
+	while (read(fd, &js, sizeof(struct js_event)) == 
 	       			sizeof(struct js_event))  {
 		values_updated = true;
 
@@ -65,11 +52,11 @@ bool read_joystick (int8_t axis_small[], int button[])
 			case JS_EVENT_AXIS:
 			{
 				axis_small[js.number] = js.value / 256;
-				if (js.number == 3)
+				if (js.number == 3) 
 				{
-					axis_small[3] = - axis_small[3]; // invert lift
+					axis_small[3] = - axis_small[3]; // invert lift	
 				}
-				break;
+				break;	
 			}
 		}
 	}
@@ -99,7 +86,7 @@ bool is_joystick_zero()
 {
 	return (
 		(axis_small[0] == 0) &&
-		(axis_small[1] == 0) &&
+		(axis_small[1] == 0) && 
 		(axis_small[2] == 0) &&
 		(axis_small[3] == -127));
 }

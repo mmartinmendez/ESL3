@@ -1,10 +1,7 @@
 # Compiler / components folders
-./components
-./gcc-arm-none-eabi
+components
+gcc-arm-none-eabi
 in4073/_build/
-
-# Python binaries
-*.pyc
 
 # Sublime project
 *.sublime-workspace
