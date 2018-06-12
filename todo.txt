@@ -1,5 +1,5 @@
 Todo:
-
+- don't go to full controll without calibration!!!
 - make the manual mode rotations less sensitive
 - Create fixed point
 - Check calibration data after 8 sec or so

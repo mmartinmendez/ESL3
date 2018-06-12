@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 			}
 			
 			offset_update = false;
-			t_joystick = add_time_millis(&t_now, 10);
+			t_joystick = add_time_millis(&t_now, 50);
 		}
 
 		// read chars from keyboard
