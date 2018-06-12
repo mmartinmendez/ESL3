@@ -124,10 +124,10 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				ae[3] =0;
 			}
 			else {
-				updated[0] = (liftdata + pitchdata - yawdata + 127 * 2) * 2;
-				updated[1] = (liftdata - rolldata + yawdata + 127 * 2) * 2;
-				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2) * 2;
-				updated[3] = (liftdata + rolldata + yawdata + 127 * 2) * 2;
+				updated[0] = (liftdata + pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
+				updated[1] = (liftdata - rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
+				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
+				updated[3] = (liftdata + rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
 
 				ae[0] = updated[0];
 				ae[1] = updated[1];
@@ -202,7 +202,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				break;
 			}
 
-			int lift_setpoint  = (liftdata + 127 * 2) * 2;
+			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
 			int P = p_yaw_control;
 
 			// compensate for calibration error
