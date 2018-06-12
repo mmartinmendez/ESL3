@@ -74,6 +74,8 @@ int main(void)
 	uint32_t bat_volt_counter = 0;
 	uint32_t time_last_msg = get_time_us();
 
+	bool in_raw_mode = false;
+
 	adc_request_sample(); // request first battery sample
 
 	// give p values initial value
@@ -87,7 +89,26 @@ int main(void)
 		if (check_sensor_int_flag()) 
 		{
 			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
-			get_dmp_data();
+			
+			if (current_mode == RAW_MODE)
+			{
+				if (in_raw_mode == false)
+				{
+					imu_init(false, 100);
+					in_raw_mode = true;
+				}
+				get_raw_sensor_data();
+			}
+			else
+			{
+				if (in_raw_mode == true)
+				{
+					imu_init(true, 100);
+					in_raw_mode = false;
+				}
+				get_dmp_data();
+			}
+
 			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
 			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
