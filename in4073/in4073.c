@@ -86,18 +86,26 @@ int main(void)
 
 		if (check_sensor_int_flag()) 
 		{
+			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
 			get_dmp_data();
+			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+
+			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
 
 			#if 0
 			static int counter_int_flag = 0;
 			printf("Counter: %d, timestamp: %lu\n", counter_int_flag++, get_time_us());
 			#endif
+
+			
 		}
 
 		// read chars from PC
 		if (rx_queue.count)
 		{
+			nrf_gpio_pin_set(LA_PIN_3); // logic analyzer
 			c = dequeue(&rx_queue);
 
 			message_len = parse_message(c, &msg_index, 
@@ -114,11 +122,13 @@ int main(void)
 				}
 
 				time_last_msg = get_time_us();
-			}	
+			}
+			nrf_gpio_pin_clear(LA_PIN_3); // logic analyzer
 		} 
 
 		if (check_timer_flag()) 
 		{
+			nrf_gpio_pin_set(LA_PIN_4); // logic analyzer
 			if (counter++%20 == 0) 
 			{
 				nrf_gpio_pin_toggle(BLUE);
@@ -161,6 +171,7 @@ int main(void)
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();
+			nrf_gpio_pin_clear(LA_PIN_4); // logic analyzer
 		}
 	}	
 
