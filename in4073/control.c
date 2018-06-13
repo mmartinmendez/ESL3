@@ -13,24 +13,24 @@
 #include "in4073.h"
 #include "invensense/inv_mpu.h"
 
-//Kalman parameters
-int p = 0;
-int p_b = 0;
-int P2PHI = 268;
-int C1_p = 1000;
-int C2_p = 1000000;
-int P1_p = 0;
-int P2_p = 0;
-int roll_setpoint = 0;
+// //Kalman parameters
+// int p = 0;
+// int p_b = 0;
+// int P2PHI = 268;
+// int C1_p = 1000;
+// int C2_p = 1000000;
+// int P1_p = 0;
+// int P2_p = 0;
+// int roll_setpoint = 0;
 
-int t = 0;
-int t_b = 0;
-int P2THETA = 268;
-int C1_t = 1000;
-int C2_t = 1000000;
-int P1_t = 0;
-int P2_t = 0;
-int pitch_setpoint = 0;
+// int t = 0;
+// int t_b = 0;
+// int P2THETA = 268;
+// int C1_t = 1000;
+// int C2_t = 1000000;
+// int P1_t = 0;
+// int P2_t = 0;
+// int pitch_setpoint = 0;
 
 int raw_mode = false;
 
@@ -83,7 +83,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 			if (!in_panic_mode)
 			{
 				// create setpoint
-				setpoint = (ae[0] + ae[1] + ae[2] + ae [3]) / 4;
+				setpoint = ((ae[0] + ae[1] + ae[2] + ae [3]) >> 2);// was division  by 4
 
 				in_panic_mode = true;
 			}
@@ -115,36 +115,30 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
 		case MANUAL_MODE:
 		{
-			//manual mode
-
-			int16_t updated[4];
+			if (!in_calibration_mode)
+			{
+				printf("Please calibrate first\n");
+				break;
+			}
 
 			if(liftdata == -127) {
-				ae[0] =0;
-				ae[1] =0;
-				ae[2] =0;
-				ae[3] =0;
+				ae[0] = 0;
+				ae[1] = 0;
+				ae[2] = 0;
+				ae[3] = 0;
 			}
 			else {
-				updated[0] = (liftdata + pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[1] = (liftdata - rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[3] = (liftdata + rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
-
-				ae[0] = updated[0];
-				ae[1] = updated[1];
-				ae[2] = updated[2];
-				ae[3] = updated[3];
+				ae[0] = (liftdata + pitchdata - yawdata + 127) * 3; // * 2 * 2 / 3) * 2;
+				ae[1] = (liftdata - rolldata + yawdata + 127) * 3; // * 2 * 2 / 3) * 2;
+				ae[2] = (liftdata - pitchdata - yawdata + 127) * 3; // * 2 * 2 / 3) * 2;
+				ae[3] = (liftdata + rolldata + yawdata + 127) * 3; // * 2 * 2 / 3) * 2;
 
 				// Bounds check
-				if (ae[0] < 254) ae[0] = 254;
-				else if(ae[0] > 750) ae[0] = 750;
-				if (ae[1] < 254) ae[1] = 254;
-				else if(ae[1] > 750) ae[1] = 750;
-				if (ae[2] < 254) ae[2] = 254;
-				else if(ae[2] > 750) ae[2] = 750;
-				if (ae[3] < 254) ae[3] = 254;
-				else if(ae[3] > 750) ae[3] = 750;
+				for (int i = 0; i < 4; i++)
+				{
+					if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
+					else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
+				}
 			}
 
 		break;
@@ -194,6 +188,11 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
 		case YAW_CONTROL_MODE:
 		{
+			if (!in_calibration_mode)
+			{
+				printf("Please calibrate first\n");
+				break;
+			}
 
 			if (liftdata == -127) {
 				ae[0] =0;
@@ -204,7 +203,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 				break;
 			}
 
-			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
+			int lift_setpoint  = (liftdata + 127) * 3;
 			int P = p_yaw_control;
 
 			// compensate for calibration error
@@ -221,16 +220,16 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
             }
 
  			// this is determined by yaw rate of joystick
-            int rate_setpoint = yawdata * 20;
-            int Eps = rate_setpoint - real_sr ;
+            int rate_setpoint = (yawdata << 4) + (yawdata << 2);// was yawdata * 20
+            int Eps = (rate_setpoint - real_sr) * P;
 
             // scale eps
-            Eps = Eps / 250; // TODO replace this with fixed point
+            Eps = (Eps >> 8); // Was division by 250 now division by 254
 
-			ae[0] = lift_setpoint + P * Eps;
-			ae[1] = lift_setpoint - P * Eps;
-			ae[2] = lift_setpoint + P * Eps;
-			ae[3] = lift_setpoint - P * Eps;
+			ae[0] = lift_setpoint + Eps;
+			ae[1] = lift_setpoint - Eps;
+			ae[2] = lift_setpoint + Eps;
+			ae[3] = lift_setpoint - Eps;
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -255,6 +254,11 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
 		case FULL_CONTROL_MODE:
 		{
+			if (!in_calibration_mode)
+			{
+				printf("Please calibrate first\n");
+				break;
+			}
 
 			if (liftdata == -127) {
 				ae[0] =0;
@@ -290,24 +294,24 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
             // create setpoints
 			int lift_setpoint  = (liftdata + 127) * 3; // *2 * 2 / 3) * 2;
-            int rate_setpoint = yawdata * 20; // was 20
-            int roll_s = rolldata * 50; 
-            int pitch_s = - pitchdata * 50; 
+            int rate_setpoint = (yawdata << 4) + (yawdata << 2); // was * 20
+            int roll_s = (rolldata << 5) + (rolldata << 4) + (rolldata << 1); //was *50
+            int pitch_s = (pitchdata << 5) + (pitchdata << 4) + (pitchdata << 1); // was *50
 
             // calculate roll/pitch/yaw thorque
-			int K_s_pitch = p1 * (pitch_s + real_theta) / 2 - p2 * real_sq;
-			int K_s_roll = p1 * (roll_s - real_phi) / 2 - p2 * real_sp;
+			int K_s_pitch = p1 * ((pitch_s + real_theta) >> 1) - p2 * real_sq; //moet miss -real_theta zijn
+			int K_s_roll = p1 * ((roll_s - real_phi) >> 1) - p2 * real_sp; // was /2 
             int Eps = (rate_setpoint - real_sr) * p_yaw_control;
 
 			// scale thorque to rpm
-			K_s_roll = K_s_roll / 750;
-			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 750; // was 250
+			K_s_roll = (K_s_roll >> 9); // was division by 750, now division by 512, maybe 1024 is better
+			K_s_pitch = (K_s_pitch >> 9); // was division by 750, now division by 512, maybe 1024 is better
+            Eps = (Eps >> 9); //was division 250, now division by 256 
 
-			ae[0] = lift_setpoint - K_s_pitch 	+ Eps;
-			ae[1] = lift_setpoint - K_s_roll 	- Eps;
-			ae[2] = lift_setpoint + K_s_pitch 	+ Eps;
-			ae[3] = lift_setpoint + K_s_roll 	- Eps;
+			ae[0] = lift_setpoint - K_s_pitch + Eps;
+			ae[1] = lift_setpoint - K_s_roll  - Eps;
+			ae[2] = lift_setpoint + K_s_pitch + Eps;
+			ae[3] = lift_setpoint + K_s_roll  - Eps;
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -341,8 +345,6 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 		}
 
 		case RAW_MODE:
-			
-
 			break;
 
 		case HEIGHT_CONTROL_MODE:
@@ -358,7 +360,6 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 			exit_in_safe_mode = true;
 			break;
 		}
-
 
 		default:
 		printf("Not a correct mode");
