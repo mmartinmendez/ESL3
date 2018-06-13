@@ -28,12 +28,10 @@ void TIMER2_IRQHandler(void)
 		NRF_TIMER2->TASKS_CAPTURE[2]=1;
 		if(!radio_active && (NRF_TIMER2->CC[2] < 500))
 		{	
-			nrf_gpio_pin_set(LA_PIN_4); // logic analyzer
 			motor[2] = (motor[2] < 1000) ? ((motor[2] < 0) ? 0: motor[2]) : 1000;
 			motor[3] = (motor[3] < 1000) ? ((motor[3] < 0) ? 0: motor[3]) : 1000;
 			NRF_TIMER2->CC[0] = 1000 + motor[2];			
 			NRF_TIMER2->CC[1] = 1000 + motor[3];	
-			nrf_gpio_pin_clear(LA_PIN_4); // logic analyzer
 		}
 	}
 }

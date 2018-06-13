@@ -43,7 +43,7 @@ bool read_joystick (int8_t axis_small[], int button[])
 	axis_small[1] = 0;
 	axis_small[2] = 0;
 	axis_small[3] = -127;
-	return true;
+	return false;
 	#endif
 
 	bool values_updated = false;

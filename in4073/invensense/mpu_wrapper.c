@@ -26,15 +26,17 @@ void update_euler_from_quaternions(int32_t *quat)
 }
 
 // reading & conversion takes 3.2 ms!!! hurray (still lots of time till 10)
-void get_dmp_data(void)
+void get_dmp_data(message_t * send_buffer, bool * demo_done)
 {
 	int8_t read_stat;
 	int16_t gyro[3], accel[3], dmp_sensors;
 	int32_t quat[4];
 
+	static int8_t counter;
+
 	if (!(read_stat = dmp_read_fifo(gyro, accel, quat, NULL, &dmp_sensors, &sensor_fifo_count)))
 	{
-		update_euler_from_quaternions(quat);
+		
 		if (dmp_sensors & INV_XYZ_GYRO)
 		{
 			sp = gyro[0];
@@ -45,8 +47,32 @@ void get_dmp_data(void)
 		{
 			sax = accel[0];
 			say = accel[1];
-			saz = accel[2];
+			saz = accel[2];	
 		}
+
+		#ifdef USE_200HZ // use this when freq is 200 Hz
+
+		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+		run_filters_and_control(send_buffer, demo_done, false);
+		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+
+
+		if (counter++%2==0) // only update every 2 cycles
+		{
+			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+			update_euler_from_quaternions(quat);
+			run_filters_and_control(send_buffer, demo_done, true);
+			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+		}
+		#else
+
+		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+		run_filters_and_control(send_buffer, demo_done, false);
+		update_euler_from_quaternions(quat);
+		run_filters_and_control(send_buffer, demo_done, true);
+		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+
+		#endif
 	}
 	else printf("Error reading sensor fifo: %d\n", read_stat);
 }
@@ -105,7 +131,11 @@ void imu_init(bool dmp, uint16_t freq)
 		printf("\rdmp set orient : %d\n", dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation)));
 	
 		printf("\rdmp en features: %d\n", dmp_enable_feature(dmp_features));
+		#ifdef USE_200HZ
+		printf("\rdmp set rate   : %d\n", dmp_set_fifo_rate(200));
+		#else
 		printf("\rdmp set rate   : %d\n", dmp_set_fifo_rate(100));
+		#endif
 		printf("\rdmp set state  : %d\n", mpu_set_dmp_state(1));
 		printf("\rdlpf set freq  : %d\n", mpu_set_lpf(10));
 	} else {

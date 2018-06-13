@@ -86,13 +86,7 @@ int main(void)
 
 		if (check_sensor_int_flag()) 
 		{
-			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
-			get_dmp_data();
-			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
-
-			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
-			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
-			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
+			get_dmp_data(&send_buffer, &demo_done);
 
 			#if 0
 			static int counter_int_flag = 0;

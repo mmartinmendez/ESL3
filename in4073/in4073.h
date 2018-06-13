@@ -40,13 +40,15 @@
 #define MAX_RPM		762
 #define MIN_RPM		254
 
+#define USE_200HZ
+
 uint8_t current_mode;
 
 // Control
 int8_t p_yaw_control, p1, p2;
 int16_t motor[4],ae[4];
 int8_t liftdata, rolldata, pitchdata, yawdata;
-void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done);
+void run_filters_and_control(message_t * send_buffer, bool * demo_done, bool second_run);
 
 // Timers
 #define TIMER_PERIOD			50 //50ms=20Hz (MAX 23bit, 4.6h)
@@ -93,7 +95,7 @@ volatile int16_t cal_sr, cal_phi, cal_theta, cal_psi, cal_sp, cal_sq, cal_sax, c
 volatile int16_t sax, say, saz;
 uint8_t sensor_fifo_count;
 void imu_init(bool dmp, uint16_t interrupt_frequency); // if dmp is true, the interrupt frequency is 100Hz - otherwise 32Hz-8kHz
-void get_dmp_data(void);
+void get_dmp_data(message_t * send_buffer, bool * demo_done);
 void get_raw_sensor_data(void);
 bool check_sensor_int_flag(void);
 void clear_sensor_int_flag(void);

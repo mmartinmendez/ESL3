@@ -47,7 +47,8 @@ void update_motors(void)
 	motor[3] = MIN(ae[3],1000);
 }
 
-void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done)
+void run_filters_and_control(message_t * send_buffer, bool * demo_done, 
+	bool second_run)
 {
 	static bool in_panic_mode = false;
 	static bool in_calibration_mode = false;
@@ -65,10 +66,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			ae[2] =0;
 			ae[3] =0;
 
-			if(raw_mode) {
-					mpu_set_dmp_state(1);
-			}
-
 			if (exit_in_safe_mode)
 			{
 				*demo_done = true;
@@ -78,6 +75,11 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		case PANIC_MODE:
 		{
+			if (second_run) // break here, because we only want our panic mode to run once every 100 Hz
+			{
+				break;
+			}
+
 			if (!in_panic_mode)
 			{
 				// create setpoint
@@ -182,8 +184,8 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 					sp, sq, sr,
 					sax, say, saz);
 
-				send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
-					cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
+				//send_calibration_data(send_buffer, cal_phi,cal_theta,cal_psi,
+				//	cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 
 				in_calibration_mode = true;
 			}
@@ -264,13 +266,17 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			// compensate for calibration error
-            int real_sax = sax - cal_sax;
-            int real_say = say - cal_say;
+            // int real_sax = sax - cal_sax;
+            // int real_say = say - cal_say;
+
+			int real_phi = phi - cal_phi;
+			int real_theta = theta - cal_theta;
+
             int real_sp = sp - cal_sp;
             int real_sq = sq - cal_sq;
             int real_sr = sr - cal_sr;
 
-			#if 1
+			#if 0
             // cap Esp at +-2000
             if (real_sr > CAP_VALUE_YAW)
             {
@@ -283,25 +289,25 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             #endif 
 
             // create setpoints
-			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
+			int lift_setpoint  = (liftdata + 127) * 3; // *2 * 2 / 3) * 2;
             int rate_setpoint = yawdata * 20; // was 20
             int roll_s = rolldata * 50; 
             int pitch_s = - pitchdata * 50; 
 
             // calculate roll/pitch/yaw thorque
-			int K_s_pitch = p1 * (pitch_s + real_sax) / 2 - p2 * real_sq;
-			int K_s_roll = p1 * (roll_s - real_say) / 2 - p2 * real_sp;
-            int Eps = rate_setpoint - real_sr ;
+			int K_s_pitch = p1 * (pitch_s + real_theta) / 2 - p2 * real_sq;
+			int K_s_roll = p1 * (roll_s - real_phi) / 2 - p2 * real_sp;
+            int Eps = (rate_setpoint - real_sr) * p_yaw_control;
 
 			// scale thorque to rpm
 			K_s_roll = K_s_roll / 750;
 			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 250; // was 250
+            Eps = Eps / 750; // was 250
 
-			ae[0] = lift_setpoint - K_s_pitch 	+ p_yaw_control * Eps;
-			ae[1] = lift_setpoint - K_s_roll 	- p_yaw_control * Eps;
-			ae[2] = lift_setpoint + K_s_pitch 	+ p_yaw_control * Eps;
-			ae[3] = lift_setpoint + K_s_roll 	- p_yaw_control * Eps;
+			ae[0] = lift_setpoint - K_s_pitch 	+ Eps;
+			ae[1] = lift_setpoint - K_s_roll 	- Eps;
+			ae[2] = lift_setpoint + K_s_pitch 	+ Eps;
+			ae[3] = lift_setpoint + K_s_roll 	- Eps;
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -310,64 +316,32 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			#if 0
-			static int debug_print_counter = 0; //TODO remove this later
+			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 			
+			static int debug_print_counter = 0; //TODO remove this later
+
+			if (second_run)
+			{
+				break;
+			}
+
 			if (debug_print_counter++%4 == 0)
 			{
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-				printf("K_s_roll: %6d | K_s_pitch: %6d | roll_s: %6d | pitch_s: %6d \n", 
-					K_s_roll, K_s_pitch, roll_s, pitch_s);
+				printf("K_s_roll: %6d | K_s_pitch: %6d | Eps: %6d | ", 
+					K_s_roll, K_s_pitch, Eps);
+				printf("phi: %6d | theta: %6d | ", phi, theta);
+				printf("p_yaw: %3d | p1: %3d | p2: %3d\n", p_yaw_control, p1, p2);
 			}
+			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
+
 			#endif
 
 			break;
 		}
 
 		case RAW_MODE:
-			if(!raw_mode) {
-				mpu_set_dmp_state(0);
-			}
-
-			get_raw_sensor_data();
-
-			if (liftdata == -127) {
-				ae[0] = 0;
-				ae[1] = 0;
-				ae[2] = 0;
-				ae[3] = 0;
-
-				break;
-			}
-
-			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
-			int roll_setpoint  = (rolldata + 127 * 2 * 2 / 3) * 2;
-			int pitch_setpoint  = (pitchdata + 127 * 2 * 2 / 3) * 2;
-			// int yaw_setpoint  = (yawdata + 127 * 2) * 2;
-
-			// Kalman for p, phi
-			p = cal_sp - p_b;
-			cal_phi = cal_phi + p * P2PHI;
-			cal_phi = cal_phi - (cal_phi - cal_say) / C1_p;
-			p_b = p_b + (cal_phi - cal_say) / C2_p;
-			// Use p, phi in P controller
-			int K_s_p = P1_p * (roll_setpoint - cal_phi) - P2_p * p;
-
-
-			// Kalman for t, theta
-			t = cal_sq - t_b;
-			cal_theta = cal_theta + t * P2THETA;
-			cal_theta = cal_theta - (cal_theta - cal_sax) / C1_t;
-			t_b = t_b + (cal_theta - cal_sax) / C2_t;
-			// Use p, phi in P controller
-			int K_s_t = P1_t * (pitch_setpoint - theta) - P2_t * t;
-
-			K_s_t = K_s_t / 250;
-			K_s_p = K_s_p / 250;
-
-			ae[0] = lift_setpoint + K_s_p; //+ P * Eps;
-			ae[1] = lift_setpoint - K_s_t;  //- P * Eps;
-			ae[2] = lift_setpoint - K_s_p; //+ P * Eps;
-			ae[3] = lift_setpoint + K_s_t;  //- P * Eps;
+			
 
 			break;
 
