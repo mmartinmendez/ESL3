@@ -48,14 +48,13 @@ void update_motors(void)
 	motor[3] = MIN(ae[3],1000);
 }
 
-void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * demo_done)
+void run_filters_and_control(message_t * send_buffer, bool * demo_done)
 {
 	static bool in_panic_mode = false;
 	static bool in_calibration_mode = false;
 	static bool exit_in_safe_mode = false;
 
 	static int setpoint = 0;
-
 
 	switch (current_mode)
 	{
@@ -78,7 +77,7 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			if (!in_panic_mode)
 			{
 				// create setpoint
-				setpoint = (ae[0] + ae[1] + ae[2] + ae [3]) / 4;
+				setpoint = ((ae[0] + ae[1] + ae[2] + ae [3]) >> 2);
 
 				in_panic_mode = true;
 			}
@@ -94,7 +93,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 			}
 
 			setpoint = MAX(0, setpoint - PANIC_MODE_STEP_SIZE);
-
 
 			if (ae[0] == 0 && ae[1] == 0 &&	ae[2] == 0 && ae[3] == 0)
 			{
@@ -112,8 +110,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 		{
 			//manual mode
 
-			int16_t updated[4];
-
 			if(liftdata == -127) {
 				ae[0] =0;
 				ae[1] =0;
@@ -121,25 +117,16 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				ae[3] =0;
 			}
 			else {
-				updated[0] = (liftdata + pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[1] = (liftdata - rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[2] = (liftdata - pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
-				updated[3] = (liftdata + rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
-
-				ae[0] = updated[0];
-				ae[1] = updated[1];
-				ae[2] = updated[2];
-				ae[3] = updated[3];
+				ae[0] = (liftdata + pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
+				ae[1] = (liftdata - rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
+				ae[2] = (liftdata - pitchdata - yawdata + 127 * 2 * 2 / 3) * 2;
+				ae[3] = (liftdata + rolldata + yawdata + 127 * 2 * 2 / 3) * 2;
 
 				// Bounds check
-				if (ae[0] < 254) ae[0] = 254;
-				else if(ae[0] > 750) ae[0] = 750;
-				if (ae[1] < 254) ae[1] = 254;
-				else if(ae[1] > 750) ae[1] = 750;
-				if (ae[2] < 254) ae[2] = 254;
-				else if(ae[2] > 750) ae[2] = 750;
-				if (ae[3] < 254) ae[3] = 254;
-				else if(ae[3] > 750) ae[3] = 750;
+			for (int i = 0; i < 4; i++)
+			{
+				if (ae[i] < MIN_RPM) ae[i] = MIN_RPM;
+				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
 		break;
@@ -216,11 +203,11 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
             }
 
  			// this is determined by yaw rate of joystick
-            int rate_setpoint = yawdata * 20;
+            int rate_setpoint = (yawdata << 4) + (yawdata << 2);// was yawdata * 20
             int Eps = rate_setpoint - real_sr ;
 
             // scale eps
-            Eps = Eps / 250; // TODO replace this with fixed point
+            Eps = (Eps >> 8); // Was division by 250 now division by 254
 
 			ae[0] = lift_setpoint + P * Eps;
 			ae[1] = lift_setpoint - P * Eps;
@@ -246,7 +233,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
 		break;
 		}
-
 
 		case FULL_CONTROL_MODE:
 		{
@@ -281,19 +267,19 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 
             // create setpoints
 			int lift_setpoint  = (liftdata + 127 * 2 * 2 / 3) * 2;
-            int rate_setpoint = yawdata * 20; // was 20
-            int roll_s = rolldata * 50; 
-            int pitch_s = - pitchdata * 50; 
+            int rate_setpoint = (yawdata << 4) + (yawdata << 2); // was * 20
+            int roll_s = (rolldata << 5) + (rolldata << 4) + (rolldata << 1); //was *50
+            int pitch_s = (pitchdata << 5) + (pitchdata << 4) + (pitchdata << 1); // was *50
 
             // calculate roll/pitch/yaw thorque
-			int K_s_pitch = p1 * (pitch_s + real_sax) / 2 - p2 * real_sq;
-			int K_s_roll = p1 * (roll_s - real_say) / 2 - p2 * real_sp;
+			int K_s_pitch = p1 * ((pitch_s + real_sax) >> 1) - p2 * real_sq; // was division by 2
+			int K_s_roll = p1 * ((roll_s - real_say) >> 1) - p2 * real_sp; // was division by 2
             int Eps = rate_setpoint - real_sr ;
 
 			// scale thorque to rpm
-			K_s_roll = K_s_roll / 750;
-			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 250; // was 250
+			K_s_roll = 	(K_s_roll >> 9); // was division by 750, now division by 512, maybe 1024 is better
+			K_s_pitch = (K_s_pitch >> 9); // was division by 750, now division by 512, maybe 1024 is better
+            Eps = (Eps >> 8); //was division 250, now division by 256 
 
 			ae[0] = lift_setpoint - K_s_pitch 	+ p_yaw_control * Eps;
 			ae[1] = lift_setpoint - K_s_roll 	- p_yaw_control * Eps;
@@ -395,7 +381,6 @@ void run_filters_and_control(message_t * send_buffer, uint16_t bat_volt, bool * 
 				"sax: %6d | say: %6d | saz: %6d |\n",
 				sp, sq, sr, sax, say, saz);
 				#endif
-
 			}
 			#endif
 

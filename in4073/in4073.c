@@ -112,7 +112,7 @@ int main(void)
 			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
 			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
-			run_filters_and_control(&send_buffer, bat_volt, &demo_done);
+			run_filters_and_control(&send_buffer, &demo_done);
 			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
 
 			#if 0
