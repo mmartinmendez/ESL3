@@ -32,7 +32,7 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 	int16_t gyro[3], accel[3], dmp_sensors;
 	int32_t quat[4];
 
-	static int8_t counter;
+	
 
 	if (!(read_stat = dmp_read_fifo(gyro, accel, quat, NULL, &dmp_sensors, &sensor_fifo_count)))
 	{
@@ -56,6 +56,7 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 		run_filters_and_control(send_buffer, demo_done, false);
 		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
+		static int8_t counter;
 
 		if (counter++%2==0) // only update every 2 cycles
 		{
@@ -67,9 +68,9 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 		#else
 
 		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
-		run_filters_and_control(send_buffer, demo_done, false);
+		//run_filters_and_control(send_buffer, demo_done, false);
 		update_euler_from_quaternions(quat);
-		run_filters_and_control(send_buffer, demo_done, true);
+		run_filters_and_control(send_buffer, demo_done, false);
 		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
 		#endif

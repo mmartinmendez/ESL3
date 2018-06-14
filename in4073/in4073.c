@@ -133,7 +133,7 @@ int main(void)
 					printf("bat_volt: %dV\n", bat_volt*12/1169); 
 
 					// real factor should be 12,1 / 1169
-					if ((bat_volt*12/1169) <= 11)
+					if ((bat_volt*12/1169) <= 10)
 					{
 						current_mode = PANIC_MODE;
 						printf("Battery value too low, go to panic mode\n");

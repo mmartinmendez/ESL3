@@ -20,7 +20,7 @@
 // enable these defines if you test without the actual drone and joystick
 #if 0
 #define DONT_USE_JS
-#define DONT_PRINT_JS_VALUES
+// #define DONT_PRINT_JS_VALUES
 #define DONT_CHECK_BATVOLT
 #define DONT_CHECK_MSG_TIMEOUT
 #endif

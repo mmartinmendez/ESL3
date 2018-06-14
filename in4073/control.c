@@ -276,7 +276,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
             int real_sq = sq - cal_sq;
             int real_sr = sr - cal_sr;
 
-			#if 0
+			#if 1
             // cap Esp at +-2000
             if (real_sr > CAP_VALUE_YAW)
             {
@@ -289,8 +289,8 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
             #endif 
 
             // create setpoints
-			int lift_setpoint  = (liftdata + 127) * 3; // *2 * 2 / 3) * 2;
-            int rate_setpoint = yawdata * 20; // was 20
+			int lift_setpoint  = (liftdata + 127 *2) * 2;
+            int rate_setpoint = - yawdata * 20; // was 20
             int roll_s = rolldata * 50; 
             int pitch_s = - pitchdata * 50; 
 
@@ -302,7 +302,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 			// scale thorque to rpm
 			K_s_roll = K_s_roll / 750;
 			K_s_pitch = K_s_pitch / 750;
-            Eps = Eps / 750; // was 250
+            Eps = Eps / 250; // was 250
 
 			ae[0] = lift_setpoint - K_s_pitch 	+ Eps;
 			ae[1] = lift_setpoint - K_s_roll 	- Eps;
@@ -315,7 +315,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
-			#if 0
+			#if 1
 			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 			
 			static int debug_print_counter = 0; //TODO remove this later
@@ -330,7 +330,8 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 				printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
 				printf("K_s_roll: %6d | K_s_pitch: %6d | Eps: %6d | ", 
 					K_s_roll, K_s_pitch, Eps);
-				printf("phi: %6d | theta: %6d | ", phi, theta);
+				printf("real_phi: %6d | real_theta: %6d | ", real_phi, real_theta);
+				printf("real_sp: %6d | real_sq: %6d | ", real_sp, real_sq);
 				printf("p_yaw: %3d | p1: %3d | p2: %3d\n", p_yaw_control, p1, p2);
 			}
 			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
