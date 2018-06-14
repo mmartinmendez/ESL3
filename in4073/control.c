@@ -315,7 +315,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 				else if(ae[i] > MAX_RPM) ae[i] = MAX_RPM;
 			}
 
-			#if 1
+			#if 0
 			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 			
 			static int debug_print_counter = 0; //TODO remove this later
