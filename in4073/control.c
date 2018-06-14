@@ -53,7 +53,6 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 	static bool in_panic_mode = false;
 	static bool in_calibration_mode = false;
 	static bool exit_in_safe_mode = false;
-	static bool calibration_done = false;
 
 	static int setpoint = 0;
 
@@ -71,7 +70,6 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 			{
 				*demo_done = true;
 			}
-			
 			break;
 		}
 
@@ -117,7 +115,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
 		case MANUAL_MODE:
 		{
-			if (!calibration_done)
+			if (!in_calibration_mode)
 			{
 				printf("Please calibrate first\n");
 				break;
@@ -184,14 +182,13 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 				//	cal_sp, cal_sq, cal_sr, cal_sax, cal_say, cal_saz);
 
 				in_calibration_mode = true;
-				calibration_done = true;
 			}
 			break;
 		}
 
 		case YAW_CONTROL_MODE:
 		{
-			if (!calibration_done)
+			if (!in_calibration_mode)
 			{
 				printf("Please calibrate first\n");
 				break;
@@ -257,7 +254,7 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 
 		case FULL_CONTROL_MODE:
 		{
-			if (!calibration_done)
+			if (!in_calibration_mode)
 			{
 				printf("Please calibrate first\n");
 				break;
@@ -371,7 +368,6 @@ void run_filters_and_control(message_t * send_buffer, bool * demo_done,
 	// update in_state booleans
 	if (current_mode != PANIC_MODE) in_panic_mode = false;
 	if (current_mode != CALIBRATION_MODE) in_calibration_mode = false;
-	if (current_mode == CALIBRATION_MODE) calibration_done = true; // niet zeker of dit ook moet?
 
 	update_motors();
 }
