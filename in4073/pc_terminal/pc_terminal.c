@@ -17,10 +17,21 @@
  *----------------------------------------------------------------
  */
 
-// #define USE_GUI
+#define USE_GUI
+
+#ifdef USE_GUI
+uint8_t axxx[6]={0};
+int buttt[12]={0};
+#endif
 
 int main(int argc, char **argv)
 {
+	/*#ifdef USE_GUI
+	typedef struct axis_buttonsss {
+    		int8_t ax[6];
+    		int but[12];
+	} axis_buttons;
+	#endif*/
 
 	// variables for sending/receiving messages
 	char c;
@@ -28,6 +39,7 @@ int main(int argc, char **argv)
 	message_t receive_buffer;
 	bool is_escaped = false;
 	uint8_t msg_index = 0;
+	bool calibration_has_been_done = false;
 
 	// time variables
 	struct timespec t_now, t_message_expect, t_joystick;
@@ -64,10 +76,11 @@ int main(int argc, char **argv)
 	#ifdef USE_GUI
   	// start GUI thread
   	pthread_t gui_thread;
+	//pthread_t update_gui_thread;
   	
 	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
 	{
-    	perror("ERROR creating jsfunc thread.");
+    	perror("ERROR creating gui_thread thread.");
 	}
 	#endif
 
@@ -80,9 +93,30 @@ int main(int argc, char **argv)
 		{
 			bool joystick_update = read_joystick(axis_small, button);
 			
+			//printf("axis 1 equals%i\n",axis_small[1]);
+
 			// only send new data when a change is detected
 			#ifdef USE_GUI
-			update_gui(axis, button);
+			//axis_buttons axbut;
+			for(int i=1; i <= 6; i++)
+				{			
+				axxx[i] = axis_small[i];
+				} 
+			for(int j=1; j <= 12; j++)
+				{			
+				buttt[j] = button[j];
+				}
+/*
+			if (pthread_create (&update_gui_thread, NULL, update_gui, &axbut)
+				{
+    				perror("ERROR creating update_gui_thread thread.");
+				}*/
+			void *run_gui(void *params)
+				{
+				printf("axis 1 equals%i",axis_small[1]);
+				//update_gui(axis_small, button);			
+				return 0;
+				}
 			#endif
 
 			// add keyboard offset to joystick values + check for overflow
@@ -105,6 +139,7 @@ int main(int argc, char **argv)
 				    axis_totals[i] = x + y;
 				}
 			}
+
 
 			// send joystick values to DRONE
 			send_buffer.data.input_data.roll = axis_totals[0];
@@ -137,19 +172,40 @@ int main(int argc, char **argv)
 			t_joystick = add_time_millis(&t_now, 10);
 		}
 
-		// read chars from keyboard
+		// read chars from keyboard 
 		if ((c = term_getchar_nb()) != -1)
 		{
-			retval = select_message(c, &send_buffer);
+		if((c - '0') != 0 && retval != 0)
+			{
+			printf("Please firstly return to safe mode (mode 0)\n"); 
+			}		
+		else
+			{
+			if((c - '0') == 3)
+				{
+				calibration_has_been_done = true;
+				}
+			if(((c - '0') == 2 || (c - '0') == 5 || (c - '0') == 6) && calibration_has_been_done == false)
+				{
+				printf("Please execute calibration first (mode 3)\n");
+				}
+			else
+				{
+				retval = select_message(c, &send_buffer);
+				}
+
+			
 			if (retval < 0x0F)
 			{
 				mode_requested = retval;
+				//printf("The input that I get is: %i\n",retval);
 				t_message_expect = add_time_millis(&t_now, 200);
 			}
 			else
 			{
 				// new offset is created, send new joystick values
 				offset_update = true;
+			}
 			}
 		}
 
