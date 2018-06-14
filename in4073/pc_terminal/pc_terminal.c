@@ -140,7 +140,6 @@ int main(int argc, char **argv)
 				}
 			}
 
-
 			// send joystick values to DRONE
 			send_buffer.data.input_data.roll = axis_totals[0];
 			send_buffer.data.input_data.pitch = axis_totals[1];

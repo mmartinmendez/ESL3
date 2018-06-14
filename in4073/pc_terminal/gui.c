@@ -86,7 +86,7 @@ void *jsfunc(void *para)
 
 	int 		fd;
 	struct js_event js;
-	unsigned int	t;
+	//unsigned int	t;
 
 	if ((fd = open(JS_DEV, O_RDONLY)) < 0) 
 		{
@@ -105,7 +105,7 @@ void *jsfunc(void *para)
 		/* simulate work
 		 */
 		mon_delay_ms(20);
-		t = mon_time_ms();
+		//t = mon_time_ms();
 
 		/* check up on JS
 		 */
@@ -381,11 +381,6 @@ void *run_gui(void *para)
 	GtkWidget *button;
 	GtkWidget *grid;
 
-	GtkWidget *bar_1;
-	GtkWidget *bar_2;
-	GtkWidget *bar_3;
-	GtkWidget *bar_4;
-
 	//initial values
 	float front = 0;
 	float back = 0;
@@ -398,12 +393,12 @@ void *run_gui(void *para)
 	//pthread_t input_check;
 	pthread_t js_check;
 
-	int xyz = 0;
+	//int xyz = 0;
 
-	if(pthread_create (&js_check, NULL, jsfunc, (void *) xyz))
-		{
-    		perror("ERROR creating jsfunc thread.");
-		}
+	if(pthread_create (&js_check, NULL, jsfunc, NULL))
+	{	
+   		perror("ERROR creating jsfunc thread.");
+	}
 
 	
    	// gtk_init (&argc, &argv);
@@ -480,6 +475,11 @@ void *run_gui(void *para)
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw_right);
 
 	#if 0
+
+	GtkWidget *bar_1;
+	GtkWidget *bar_2;
+	GtkWidget *bar_3;
+	GtkWidget *bar_4;
 
 	//create progress bar_1
 	bar_1 = gtk_progress_bar_new();
