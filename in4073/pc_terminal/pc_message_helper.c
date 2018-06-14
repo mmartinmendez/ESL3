@@ -201,6 +201,7 @@ uint8_t select_message(uint8_t c, message_t * send_buffer)
 		case '2': // MANUAL MODE
 		case '4': // YAW CONTROL MODE
 		case '5': // FULL CONTROL MODE
+		case '6': // CALIBRATION MODE
 		{
 			// first check if joystick is in 'zero' position
 			if (!is_joystick_zero())
