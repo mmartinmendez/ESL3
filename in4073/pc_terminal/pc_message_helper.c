@@ -89,9 +89,9 @@ char* get_mode_name(uint8_t mode)
 		"MANUAL_MODE",			// 2
 		"CALIBRATION_MODE",		// 3
 		"YAW_CONTROL_MODE",		// 4
-		"FULL_CONTROL_MODE",	// 5
-		"RAW_MODE",				// 6
-		"HEIGHT_CONTROL_MODE",	// 7
+		"FULL_CONTROL_MODE",		// 5
+		"RAW_MODE",			// 6
+		"HEIGHT_CONTROL_MODE",		// 7
 		"WIRELESS_MODE",		// 8
 		"TERMINATE_MODE"		// 9
 	};

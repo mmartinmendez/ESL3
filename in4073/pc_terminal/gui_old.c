@@ -35,34 +35,13 @@ GtkWidget *label_10;
 GtkWidget *label_11;
 GtkWidget *label_12;
 
-int	axis[6];
-int	button[12];
+//int	axis[6];
+//int	button[12];
 
-unsigned int    mon_time_ms(void)
-{
-        unsigned int    ms;
-        struct timeval  tv;
-        struct timezone tz;
-
-        gettimeofday(&tv, &tz);
-        ms = 1000 * (tv.tv_sec % 65); // 65 sec wrap around
-        ms = ms + tv.tv_usec / 1000;
-        return ms;
-}
-
-void    mon_delay_ms(unsigned int ms)
-{
-        struct timespec req, rem;
-
-        req.tv_sec = ms / 1000;
-        req.tv_nsec = 1000000 * (ms % 1000);
-        assert(nanosleep(&req,&rem) == 0);
-}
 
 #define JS_DEV	"/dev/input/js1"
 //reading joystick values
-void *jsfunc(void *para)
-//void update_gui (int8_t axis[], int button[])
+void update_gui (int8_t axis[], int button[])
 {
 
 	static int buttoncheck_1 = 0;
@@ -81,60 +60,11 @@ void *jsfunc(void *para)
 	float vertical = 0;
 	float power = 0;
 	float yaw = 0;
-	float maxvalue = 32767;
-	float doublemaxvalue = 65534;
+	float maxvalue = 127;
+	float doublemaxvalue = 254;
 
-	int 		fd;
-	struct js_event js;
-	unsigned int	t;
+	printf("%i\n",button[0]);
 
-	if ((fd = open(JS_DEV, O_RDONLY)) < 0) 
-		{
-		perror("Please connect the joystick\n");
-		exit(1);
-		} 
-
-	/* non-blocking mode
-	 */
-	fcntl(fd, F_SETFL, O_NONBLOCK);
-
-	while (1) 
-		{
-
-
-		/* simulate work
-		 */
-		mon_delay_ms(20);
-		t = mon_time_ms();
-
-		/* check up on JS
-		 */
-		while (read(fd, &js, sizeof(struct js_event)) == 
-		       			sizeof(struct js_event))  
-			{
-
-			/* register data
-			 */
-			// fprintf(stderr,".");
-			switch(js.type & ~JS_EVENT_INIT) 
-				{
-				case JS_EVENT_BUTTON:
-					button[js.number] = js.value;
-					break;
-				case JS_EVENT_AXIS:
-					axis[js.number] = js.value;
-					break;
-				}
-			}
-		if (errno != EAGAIN) 
-			{
-			perror("\njs: error reading (EAGAIN)");
-			exit (1);
-			}
-/*
-		printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i \n",t , axis[0],axis[1],axis[2],axis[3],axis[4],axis[5],button[0] ,button[1] ,button[2] ,button[3] ,button[4] ,button[5] ,button[6] ,button[7] ,button[8] ,button[9] ,button[10] ,button[11] );
-
-*/
 	if (button[0] != buttoncheck_1)
 	{
 		if (button[0] == 0)
@@ -311,50 +241,49 @@ void *jsfunc(void *para)
 	if (horizontal <= 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0 - horizontal);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), 0);
-		usleep(20000);
+		usleep(15000);
 		}
 	if (horizontal > 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_left), 0);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_right), horizontal);
-		usleep(20000);
+		usleep(15000);
 		}
 	if (vertical <= 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0 - vertical);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), 0);
-		usleep(20000);
+		usleep(15000);
 		}
 	if (vertical > 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_back), 0);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_front), vertical);
-		usleep(20000);
+		usleep(15000);
 		}
 	if (yaw <= 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0 - yaw);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), 0);
-		usleep(20000);
+		usleep(15000);
 		}
 	if (yaw > 0)
 		{
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_left), 0);
-		usleep(20000);
+		usleep(15000);
 		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw);
-		usleep(20000);
+		usleep(15000);
 		}
 
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_power), power);
-	usleep(20000);
 }
-}
+
 
 
 static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
@@ -363,8 +292,8 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data)
     	g_print ("delete event occurred\n");
 	gtk_main_quit ();
 
-    	// Change TRUE to FALSE and the main window will be destroyed with
-     	// a "delete-event". 
+    	/* Change TRUE to FALSE and the main window will be destroyed with
+     	* a "delete-event". */
 
     	return TRUE;
 	}
@@ -374,10 +303,9 @@ static void destroy(GtkWidget *widget, gpointer data)
     	gtk_main_quit ();
 	}
 
-
 void *run_gui(void *para)
 {
-    	GtkWidget *window;
+    GtkWidget *window;
 	GtkWidget *button;
 	GtkWidget *grid;
 
@@ -394,17 +322,15 @@ void *run_gui(void *para)
 	float yaw_left = 0.8;
 	float yaw_right = 0.8;
 
-
-	//pthread_t input_check;
+#if 0
+	pthread_t input_check;
 	pthread_t js_check;
 
-	int xyz = 0;
-
-	if(pthread_create (&js_check, NULL, jsfunc, (void *) xyz))
-		{
-    		perror("ERROR creating jsfunc thread.");
-		}
-
+if(pthread_create (&js_check, NULL, jsfunc, (void *) argv))
+	{
+    	perror("ERROR creating jsfunc thread.");
+	}
+#endif
 	
    	// gtk_init (&argc, &argv);
    	gtk_init (NULL, NULL);
@@ -479,8 +405,6 @@ void *run_gui(void *para)
 	gtk_grid_attach (GTK_GRID (grid), bar_yaw_right, vposition + 2, hposition + 3, 1, 1);
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_yaw_right), yaw_right);
 
-	#if 0
-
 	//create progress bar_1
 	bar_1 = gtk_progress_bar_new();
 	gtk_orientable_set_orientation (GTK_ORIENTABLE (bar_1), GTK_ORIENTATION_VERTICAL);
@@ -520,8 +444,6 @@ void *run_gui(void *para)
 	gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (bar_4), 0.3);
 	gtk_progress_bar_set_text (GTK_PROGRESS_BAR (bar_4), "Motor 4");
 	gtk_progress_bar_set_show_text (GTK_PROGRESS_BAR (bar_4), TRUE);
-
-	#endif
 
 	//create button
   	button = gtk_button_new_with_label ("Quit");
