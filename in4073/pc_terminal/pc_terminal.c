@@ -174,8 +174,8 @@ int main(int argc, char **argv)
 		// read chars from keyboard 
 		if ((c = term_getchar_nb()) != -1)
 		{
-			if(((c - '0') != 0 && retval != 0) && (c != '1'))
-			{
+			if(((c - '0') != 0 && retval != 0) && (c != '1') && ((c == '2') || (c == '3') || (c == '4') || (c == '5') || (c == '6') || (c == '7') || (c == '8')  || (c == '9')))
+			{ 
 				printf("Please firstly return to safe mode (mode 0)\n"); 
 			}		
 			else
