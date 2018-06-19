@@ -33,9 +33,12 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 	int16_t gyro[3], accel[3], dmp_sensors;
 	int32_t quat[4];
 
-	if (!(read_stat = dmp_read_fifo(gyro, accel, quat, NULL, &dmp_sensors, &sensor_fifo_count)))
-	{
-		
+	nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+	read_stat = dmp_read_fifo(gyro, accel, quat, NULL, &dmp_sensors, &sensor_fifo_count);
+	nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+
+	if (!read_stat)
+	{		
 		if (dmp_sensors & INV_XYZ_GYRO)
 		{
 			sp = gyro[0];
@@ -51,26 +54,26 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 
 		#ifdef USE_200HZ // use this when freq is 200 Hz
 
-		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+		nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 		run_filters_and_control(demo_done, false);
-		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+		nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
 
 		static int8_t counter;
 
 		if (counter++%2==0) // only update every 2 cycles
 		{
-			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+			nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 			update_euler_from_quaternions(quat);
 			run_filters_and_control(demo_done, true);
-			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+			nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
 		}
 		#else
 
-		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
+		nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
 		//run_filters_and_control(send_buffer, demo_done, false);
 		update_euler_from_quaternions(quat);
 		run_filters_and_control(demo_done, false);
-		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
+		nrf_gpio_pin_clear(LA_PIN_2); // logic analyzer
 
 		#endif
 	}
