@@ -1,5 +1,6 @@
 #include <stdio.h>
-
+#include <stdint.h>
+#include "pc_term.h"
 #include "pc_rs232.h"
 #include "pc_message_helper.h"
 #include "../message/message.h"
@@ -188,7 +189,7 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 
 // Author: B.T. Blokland
 // returns mode requested or 0xFF if no mode is set
-uint8_t select_message(uint8_t * c, message_t * send_buffer)
+uint8_t select_message(uint8_t k, message_t * send_buffer)
 {
 	uint8_t retval = 0xFF;
 
