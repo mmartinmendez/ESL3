@@ -102,6 +102,7 @@ int main(void)
 
 		if (check_timer_flag()) 
 		{
+			nrf_gpio_pin_set(LA_PIN_4); // logic analyzer
 			if (counter++%20 == 0) 
 			{
 				nrf_gpio_pin_toggle(BLUE);
@@ -144,6 +145,7 @@ int main(void)
 			// printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
 
 			clear_timer_flag();
+			nrf_gpio_pin_clear(LA_PIN_4); // logic analyzer
 		}
 	}	
 
