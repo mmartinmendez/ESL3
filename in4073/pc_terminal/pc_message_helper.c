@@ -6,6 +6,7 @@
 #include "../message/crc.h"
 #include "joystick.h"
 
+// Author: B.T. Blokland
 void send_message(message_t * message, uint8_t message_len)
 {
 	uint8_t * message_ptr = (uint8_t *) message;
@@ -33,6 +34,7 @@ void send_message(message_t * message, uint8_t message_len)
 	rs232_putchar(END_BYTE);
 }
 
+// Author: B.T. Blokland
 void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 {
 	uint8_t message_len, data_len;
@@ -80,6 +82,7 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 	}
 }
 
+// Author: B.T. Blokland
 char* get_mode_name(uint8_t mode)
 {
 	char* mode_names[10] = 
@@ -107,6 +110,7 @@ char* get_mode_name(uint8_t mode)
 
 }
 
+// Author: B.T. Blokland
 uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 {
 	uint8_t retval = 0xFF;
@@ -182,6 +186,7 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 	return retval;
 }
 
+// Author: B.T. Blokland
 // returns mode requested or 0xFF if no mode is set
 uint8_t select_message(uint8_t c, message_t * send_buffer)
 {

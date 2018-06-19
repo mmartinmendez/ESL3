@@ -5,6 +5,7 @@
 #include "message/crc.h"
 #include "in4073.h"
 
+// Author: B.T. Blokland
 void send_message(message_t * message, uint8_t message_len)
 {
 	uint8_t * message_ptr = (uint8_t *) message;
@@ -33,6 +34,7 @@ void send_message(message_t * message, uint8_t message_len)
 	putchar('\n'); // add newline to flush send buffer
 }
 
+// Author: B.T. Blokland
 void send_terminate(message_t * send_buffer)
 {
 	uint8_t message_len;
@@ -45,6 +47,7 @@ void send_terminate(message_t * send_buffer)
 	}
 }
 
+// Author: B.T. Blokland
 void send_mode_update(message_t * send_buffer, uint8_t mode)
 {
 	mode_update_t data;
@@ -60,6 +63,7 @@ void send_mode_update(message_t * send_buffer, uint8_t mode)
 	}
 }
 
+// Author: B.T. Blokland
 void send_p_values_update(message_t * send_buffer, uint8_t select)
 {
 	p_values_update_t data;
@@ -125,6 +129,7 @@ void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta,
 	}
 }
 
+// Author: B.T. Blokland
 static void change_p_values(set_p_values_t * data)
 {
 	int8_t * selected_p_value;
@@ -183,6 +188,7 @@ static void change_p_values(set_p_values_t * data)
 }
 
 // return mode set, or 0xFF
+// Author: B.T. Blokland
 uint8_t handle_message(message_t * send_buffer, uint8_t * receive_buffer, 
 	uint8_t buffer_len, bool * demo_done)
 {

@@ -26,13 +26,12 @@ void update_euler_from_quaternions(int32_t *quat)
 }
 
 // reading & conversion takes 3.2 ms!!! hurray (still lots of time till 10)
+// Author: B.T. Blokland
 void get_dmp_data(message_t * send_buffer, bool * demo_done)
 {
 	int8_t read_stat;
 	int16_t gyro[3], accel[3], dmp_sensors;
 	int32_t quat[4];
-
-	
 
 	if (!(read_stat = dmp_read_fifo(gyro, accel, quat, NULL, &dmp_sensors, &sensor_fifo_count)))
 	{
@@ -53,7 +52,7 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 		#ifdef USE_200HZ // use this when freq is 200 Hz
 
 		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
-		run_filters_and_control(send_buffer, demo_done, false);
+		run_filters_and_control(demo_done, false);
 		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
 		static int8_t counter;
@@ -62,7 +61,7 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 		{
 			nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
 			update_euler_from_quaternions(quat);
-			run_filters_and_control(send_buffer, demo_done, true);
+			run_filters_and_control(demo_done, true);
 			nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 		}
 		#else
@@ -70,7 +69,7 @@ void get_dmp_data(message_t * send_buffer, bool * demo_done)
 		nrf_gpio_pin_set(LA_PIN_1); // logic analyzer
 		//run_filters_and_control(send_buffer, demo_done, false);
 		update_euler_from_quaternions(quat);
-		run_filters_and_control(send_buffer, demo_done, false);
+		run_filters_and_control(demo_done, false);
 		nrf_gpio_pin_clear(LA_PIN_1); // logic analyzer
 
 		#endif
@@ -101,8 +100,6 @@ void get_raw_sensor_data(void)
 	}
 	else printf("Error reading raw sensor fifo: %d\n", read_stat);
 }
-
-
 
 bool check_sensor_int_flag(void)
 {

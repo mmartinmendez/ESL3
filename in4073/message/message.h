@@ -20,7 +20,7 @@
 // enable these defines if you test without the actual drone and joystick
 #if 0
 #define DONT_USE_JS
-// #define DONT_PRINT_JS_VALUES
+#define DONT_PRINT_JS_VALUES
 #define DONT_CHECK_BATVOLT
 #define DONT_CHECK_MSG_TIMEOUT
 #endif
@@ -172,8 +172,10 @@ typedef struct {
 	message_data_u data;
 } message_t;
 
+// Author: B.T. Blokland
 uint8_t build_message(uint8_t message_type, uint8_t* message_data, 
 	uint8_t data_len, message_t * message);
+// Author: B.T. Blokland
 uint8_t parse_message(uint8_t c, uint8_t * msg_index, 
 	bool * is_escaped, uint8_t * buffer, char* source);
 

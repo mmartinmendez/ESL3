@@ -35,6 +35,7 @@ void init_joystick ()
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
+// Author: B.T. Blokland
 // returns true when a new value is read
 bool read_joystick (int8_t axis_small[], int button[])
 {
@@ -96,6 +97,7 @@ bool read_joystick (int8_t axis_small[], int button[])
 	return values_updated;
 }
 
+// Author: B.T. Blokland
 bool is_joystick_zero()
 {
 	return (

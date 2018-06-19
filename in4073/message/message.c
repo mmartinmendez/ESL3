@@ -3,6 +3,7 @@
 #include "message.h"
 #include "crc.h"
 
+// Author: B.T. Blokland
 // returns length of message build
 uint8_t build_message(uint8_t message_type, uint8_t* message_data, 
 				      uint8_t data_len, message_t * message)
@@ -28,6 +29,7 @@ uint8_t build_message(uint8_t message_type, uint8_t* message_data,
 	return data_len;
 }
 
+// Author: B.T. Blokland
 // return true if crc checks out, return false if not
 bool validate_message(uint8_t * buffer, uint8_t buffer_len, char * source)
 {
@@ -51,6 +53,7 @@ bool validate_message(uint8_t * buffer, uint8_t buffer_len, char * source)
 	return (crc_received == crc_calculated);
 }
 
+// Author: B.T. Blokland
 // Returns true if end byte is received, false if not
 uint8_t parse_message(uint8_t c, uint8_t * msg_index, bool * is_escaped, 
 					  uint8_t * buffer, char* source)

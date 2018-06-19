@@ -9,7 +9,7 @@
 #define MILLI_SEC (MICRO_SEC * 1000)
 #define SECOND (MILLI_SEC * 1000)
 
-struct timespec add_time_millis (const struct timespec * time, int millis);
-bool compare_time(const struct timespec * time1, const struct timespec * time2);
+struct timespec add_time_millis (const struct timespec * time, int millis); // Author: B.T. Blokland
+bool compare_time(const struct timespec * time1, const struct timespec * time2); // Author: B.T. Blokland
 
 #endif

@@ -22,6 +22,7 @@
  * main -- everything you need is here :)
  *------------------------------------------------------------------
  */
+// Author: B.T. Blokland
 int main(void)
 {
 
@@ -49,26 +50,6 @@ int main(void)
 	uint8_t retval = 0;
 	
 	bool demo_done = false;
-
-	#if 0
-	uint8_t data[15] = {0};
-	uint32_t free_pointer = 0x000000;
-	uint8_t buttons_123 = 0 ; //+ button_1*100 + button_2*10 + button_3*1 ;
-	uint8_t buttons_456 = 0 ; //+ button_4*100 + button_5*10 + button_6*1 ;
-	uint8_t buttons_789 = 0 ; //+ button_7*100 + button_8*10 + button_9*1 ;
-	uint8_t buttons_101112 = 0 ; //+ button_10*100 + button_11*10 + button_12*1 ;
-	uint8_t front_percent = 0;
-	uint8_t side_percent = 0;
-	uint8_t yaw_percent = 0;
-	uint8_t power_percent = 0;
-	uint8_t baro_percent = 0;
-	uint8_t roll_x_percent = 0;
-	uint8_t roll_y_percent = 0;
-	uint8_t motor_1_percent = 0;
-	uint8_t	motor_2_percent = 0; 
-	uint8_t	motor_3_percent = 0;
-	uint8_t	motor_4_percent = 0; 
-	#endif
 
 	uint32_t counter = 0;
 	uint32_t bat_volt_counter = 0;

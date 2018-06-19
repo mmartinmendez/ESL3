@@ -1,6 +1,7 @@
 #include "time_helper.h" 
  
 // adds milliseconds to timespec struct 
+// Author: B.T. Blokland
 struct timespec add_time_millis (const struct timespec * time, int millis) 
 { 
   struct timespec return_time = *time; 
@@ -16,6 +17,7 @@ struct timespec add_time_millis (const struct timespec * time, int millis)
 } 
  
 // returns time 1 > time 2 
+// Author: B.T. Blokland
 bool compare_time(const struct timespec * time1, const struct timespec * time2) 
 { 
   if (time1->tv_sec > time2->tv_sec) return true; 
