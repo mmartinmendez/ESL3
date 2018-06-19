@@ -19,6 +19,7 @@
  *------------------------------------------------------------
  */
 struct termios 	savetty;
+static unsigned char line [2];
 
 void term_initio()
 {
@@ -49,12 +50,11 @@ void term_putchar(char c)
 	putc(c,stderr);
 }
 
-int	term_getchar_nb()
+int *	term_getchar_nb()
 {
-        static unsigned char 	line [2];
 
         if (read(0,line,1)) // note: destructive read
-        		return (int) line[0];
+        		return (int) &line; // sending a buffer instead
 
         return -1;
 }
