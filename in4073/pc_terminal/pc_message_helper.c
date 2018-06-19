@@ -22,7 +22,7 @@ void send_message(message_t * message, uint8_t message_len)
 		{
 			rs232_putchar(ESCAPE);
 			rs232_putchar(*(message_ptr++) ^ 0x20);
-		}
+		} 
 		else
 		{
 			rs232_putchar(*(message_ptr++));
@@ -65,13 +65,13 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 		}
 		default:
 		{
-			printf("No valid msg_type is being send: %d\n", msg_type);
+			printf("No valid msg_type is being send: %d\n", msg_type);			
 			return;
 		}
-
+	
 	}
 
-	message_len = build_message(msg_type, (uint8_t *) &data, data_len,
+	message_len = build_message(msg_type, (uint8_t *) &data, data_len, 
 		send_buffer);
 
 	if (message_len > 0)
@@ -82,8 +82,8 @@ void build_and_send_message (uint8_t msg_type, message_t * send_buffer)
 
 char* get_mode_name(uint8_t mode)
 {
-	char* mode_names[10] =
-	{
+	char* mode_names[10] = 
+	{	
 		"SAFE MODE",			// 0
 		"PANIC_MODE",			// 1
 		"MANUAL_MODE",			// 2
@@ -173,7 +173,7 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 
 		default:
 		{
-			printf("PC: Received unsupported msg_type: %d\n",
+			printf("PC: Received unsupported msg_type: %d\n", 
 				buffer->message_type);
 			break;
 		}
@@ -183,34 +183,24 @@ uint8_t handle_message(message_t * buffer, uint8_t buffer_len)
 }
 
 // returns mode requested or 0xFF if no mode is set
-uint8_t select_message(key k, message_t * send_buffer)
+uint8_t select_message(uint8_t c, message_t * send_buffer)
 {
 	uint8_t retval = 0xFF;
 
-	switch(k)
+	switch(c)
 	{
-		case KEY_0: // SAFE MODE
+		case '0': // SAFE MODE
+		case '1': // PANIC MODE
+		case '3': // CALIBRATION MODE
 		{
-			send_buffer->data.set_mode_data.mode = 0;
-			retval = 0;
+			send_buffer->data.set_mode_data.mode = c - '0';
+			retval = c - '0';
 			build_and_send_message(MSG_SET_MODE, send_buffer);
 			break;
 		}
-		case KEY_1: // PANIC MODE
-		{
-			send_buffer->data.set_mode_data.mode = 1;
-			retval = 1;
-			build_and_send_message(MSG_SET_MODE, send_buffer);
-			break;
-		}
-		case KEY_3: // CALIBRATION MODE
-		{
-			send_buffer->data.set_mode_data.mode = 3;
-			retval = 3;
-			build_and_send_message(MSG_SET_MODE, send_buffer);
-			break;
-		}
-		case KEY_2: // MANUAL MODE
+		case '2': // MANUAL MODE
+		case '4': // YAW CONTROL MODE
+		case '5': // FULL CONTROL MODE
 		{
 			// first check if joystick is in 'zero' position
 			if (!is_joystick_zero())
@@ -219,92 +209,62 @@ uint8_t select_message(key k, message_t * send_buffer)
 			}
 			else
 			{
-				send_buffer->data.set_mode_data.mode = 2;
-				retval = 2;
-				build_and_send_message(MSG_SET_MODE, send_buffer);
+				send_buffer->data.set_mode_data.mode = c - '0';
+				retval = c - '0';
+				build_and_send_message(MSG_SET_MODE, send_buffer);	
 			}
 			break;
 		}
-		case KEY_4: // YAW CONTROL MODE
-		{
-			// first check if joystick is in 'zero' position
-			if (!is_joystick_zero())
-			{
-				printf("Set joystick into zero position\n");
-			}
-			else
-			{
-				send_buffer->data.set_mode_data.mode = 2;
-				retval = 2;
-				build_and_send_message(MSG_SET_MODE, send_buffer);
-			}
-			break;
-		}
-		case KEY_5: // FULL CONTROL MODE
-		{
-			// first check if joystick is in 'zero' position
-			if (!is_joystick_zero())
-			{
-				printf("Set joystick into zero position\n");
-			}
-			else
-			{
-				send_buffer->data.set_mode_data.mode = 5;
-				retval = 5;
-				build_and_send_message(MSG_SET_MODE, send_buffer);
-			}
-			break;
-		}
-		case KEY_9:
-		case KEY_ESCAPE: // escape character
+		case '9':
+		case 27: // escape character
 		{
 			send_buffer->data.set_mode_data.mode = TERMINATE_MODE;
 			retval = TERMINATE_MODE;
 			build_and_send_message(MSG_SET_MODE, send_buffer);
 			break;
 		}
-		case KEY_A:
+		case 'a': 
 		{
 			axis_offsets[3] += 1; // lift up
 			break;
 		}
-		case KEY_Z:
+		case 'z': 
 		{
 			axis_offsets[3] -= 1; // lift down
 			break;
 		}
 		//TODO verify the arrow values with joystick
-		case KEY_LEFT: // LEFT ARROW
+		case 's': // LEFT ARROW 
 		{
 			axis_offsets[0] += 1; // roll up
 			break;
 		}
-		case KEY_RIGHT: // RIGHT ARROW
+		case 'x': // RIGHT ARROW 
 		{
 			axis_offsets[0] -= 1; // roll down
 			break;
 		}
-		case KEY_UP: // UP ARROW
+		case 'd': // UP ARROW 
 		{
 			axis_offsets[1] -= 1; // pitch down
 			break;
 		}
-		case KEY_DOWN: // DOWN ARROW
+		case 'c': // DOWN ARROW 
 		{
 			axis_offsets[1] += 1; // pitch up
 			break;
 		}
-		case KEY_Q:
+		case 'q':
 		{
 			axis_offsets[2] -= 1;// yaw down
 			break;
 		}
-		case KEY_W:
+		case 'w':
 		{
 			axis_offsets[2] += 1;// yaw up
 			break;
 		}
-		case KEY_U:
+		case 'u':
 		{
 			// yaw control P up
 			send_buffer->data.set_p_values.select = P_YAW_CONTROL;
@@ -313,7 +273,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
-		case KEY_J:
+		case 'j':
 		{
 			// yaw control P down
 			send_buffer->data.set_p_values.select = P_YAW_CONTROL;
@@ -322,7 +282,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
-		case KEY_I:
+		case 'i':
 		{
 			// roll/pitch control P1 up
 			send_buffer->data.set_p_values.select = P1_PITCH_ROLL_CONTROL;
@@ -331,7 +291,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
-		case KEY_K:
+		case 'k':
 		{
 			// roll/pitch control P1 down
 			send_buffer->data.set_p_values.select = P1_PITCH_ROLL_CONTROL;
@@ -340,7 +300,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
-		case KEY_O:
+		case 'o':
 		{
 			// roll/pitch control P2 up
 			send_buffer->data.set_p_values.select = P2_PITCH_ROLL_CONTROL;
@@ -349,7 +309,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 			build_and_send_message(MSG_SET_P_VALUES, send_buffer);
 			break;
 		}
-		case KEY_L:
+		case 'l':
 		{
 			// roll/pitch control P2 down
 			send_buffer->data.set_p_values.select = P2_PITCH_ROLL_CONTROL;
@@ -361,7 +321,7 @@ uint8_t select_message(key k, message_t * send_buffer)
 
 		default:
 		{
-			printf("No valid input: %c\n", k);
+			printf("No valid input: %c\n", c);
 			break;
 		}
 	}
