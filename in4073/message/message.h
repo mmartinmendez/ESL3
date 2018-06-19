@@ -173,10 +173,10 @@ typedef struct {
 } message_t;
 
 // Author: B.T. Blokland
-uint8_t build_message(uint8_t message_type, uint8_t* message_data, 
+uint8_t build_message(uint8_t message_type, uint8_t* message_data,
 	uint8_t data_len, message_t * message);
 // Author: B.T. Blokland
-uint8_t parse_message(uint8_t c, uint8_t * msg_index, 
+uint8_t parse_message(uint8_t c, uint8_t * msg_index,
 	bool * is_escaped, uint8_t * buffer, char* source);
 
 

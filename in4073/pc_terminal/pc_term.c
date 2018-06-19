@@ -22,7 +22,6 @@
  *------------------------------------------------------------
  */
 struct termios 	savetty;
-static unsigned char line [2];
 
 void term_initio()
 {
@@ -53,6 +52,7 @@ void term_putchar(char c)
 	putc(c,stderr);
 }
 
+// Author: Mithun Martin Mendez
 uint8_t parse_key(char *buf) {
   switch (buf[0]) {
   case '\x7f':
@@ -199,8 +199,11 @@ uint8_t parse_key(char *buf) {
   }
 }
 
+// Author: Mithun Martin Mendez
 uint8_t	term_getchar_nb()
 {
+
+	int i;
 
 	char *buf = (char *) malloc(5 * sizeof(char));
 
@@ -230,15 +233,6 @@ uint8_t	term_getchar_nb()
 	}
 
 	return KEY_UNKNOWN;
-
-
-
-        // static unsigned char 	line [2];
-				//
-        // if (read(0,line,1)) // note: destructive read
-        // 		return (int) line[0];
-				//
-        // return -1;
 }
 
 int	term_getchar()
