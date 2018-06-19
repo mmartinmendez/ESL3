@@ -17,8 +17,9 @@
  *----------------------------------------------------------------
  */
 
-// #define USE_GUI
+// Author: K Flere
 
+#define USE_GUI
 #ifdef USE_GUI
 uint8_t axxx[6]={0};
 int buttt[12]={0};
@@ -170,8 +171,8 @@ int main(int argc, char **argv)
 			offset_update = false;
 			t_joystick = add_time_millis(&t_now, 50);
 		}
-
-		// read chars from keyboard 
+		// Author: K. Flere
+		// Make the user return to safe mode before going to other mode 
 		if ((c = term_getchar_nb()) != -1)
 		{
 			if(((c - '0') != 0 && retval != 0) && (c != '1') && ((c == '2') || (c == '3') || (c == '4') || (c == '5') || (c == '6') || (c == '7') || (c == '8')  || (c == '9')))
@@ -180,12 +181,12 @@ int main(int argc, char **argv)
 			}		
 			else
 			{
-				if((c - '0') == 3)
+				if((c - '0') == 3) // Set calibration flag
 				{
 					calibration_has_been_done = true;
 				}
 				if(((c - '0') == 2 || (c - '0') == 5 || (c - '0') == 6) && calibration_has_been_done == false)
-				{
+				{	// Prevent mode before calibration
 					printf("Please execute calibration first (mode 3)\n");
 				}
 				else

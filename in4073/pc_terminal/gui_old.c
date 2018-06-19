@@ -1,3 +1,6 @@
+// Author: K Flere
+// Visial interface showing joystick input and motor values
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
