@@ -328,11 +328,12 @@ extern "C" {
 #define _POSIX_MEMORY_PROTECTION	1
 #define _POSIX_MESSAGE_PASSING		1
 #define _POSIX_MONOTONIC_CLOCK		200112L
+#define _POSIX_CLOCK_SELECTION		200112L
 #define _POSIX_PRIORITIZED_IO		1
 #define _POSIX_PRIORITY_SCHEDULING	1
 #define _POSIX_REALTIME_SIGNALS		1
 #define _POSIX_SEMAPHORES		1
-/* #define _POSIX_SHARED_MEMORY_OBJECTS	1 */
+#define _POSIX_SHARED_MEMORY_OBJECTS	1
 #define _POSIX_SYNCHRONIZED_IO		1
 #define _POSIX_TIMERS			1
 #define _POSIX_BARRIERS                 200112L
@@ -364,6 +365,9 @@ extern "C" {
 
 /* UNIX98 added some new pthread mutex attributes */
 #define _UNIX98_THREAD_MUTEX_ATTRIBUTES         1
+
+/* POSIX 1003.26-2003 defined device control method */
+#define _POSIX_26_VERSION			200312L
 
 #endif
 
@@ -501,10 +505,9 @@ extern "C" {
 /* #define _XOPEN_UNIX				    -1 */
 #endif /* __XSI_VISIBLE */
 
-/* The value corresponds to UNICODE version 4.0, which is the version
-   supported by XP.  Newlib supports 5.2 (2011) but so far Cygwin needs
-   the MS conversions for double-byte charsets. */
-#define __STDC_ISO_10646__ 200305L
+/* The value corresponds to UNICODE version 5.2, which is the current
+   state of newlib's wide char conversion functions. */
+#define __STDC_ISO_10646__ 200910L
 
 #endif /* __CYGWIN__ */
 

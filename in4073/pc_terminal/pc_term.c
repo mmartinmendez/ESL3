@@ -8,11 +8,14 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 #include <string.h>
 #include <inttypes.h>
 #include <ctype.h>
+#include "pc_term.h"
 
 /*------------------------------------------------------------
  * console I/O
@@ -49,7 +52,7 @@ void term_putchar(char c)
 	putc(c,stderr);
 }
 
-key parse_key(char *buf) {
+uint8_t parse_key(char *buf) {
   switch (buf[0]) {
   case '\x7f':
   case '\b':
@@ -195,11 +198,11 @@ key parse_key(char *buf) {
   }
 }
 
-key	term_getchar_nb()
+uint8_t	term_getchar_nb()
 {
 	int i;
 
-	char *buf = (char *) malloc(4 * sizeof(char));
+	char *buf = (char *) malloc(5 * sizeof(char));
 
   if (buf == NULL) {
     return KEY_UNKNOWN;
@@ -221,7 +224,7 @@ key	term_getchar_nb()
 	}
 
 	if(n) {
-		key k = parse_key(buf);
+		uint8_t k = parse_key(buf);
 		free(buf);
 		return k;
 	}

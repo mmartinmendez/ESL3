@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include "pc_rs232.h"
 #include "pc_term.h"
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 
 	// variables for sending/receiving messages
 	char c;
-	key k = KEY_UNKNOWN;
+	uint8_t k = KEY_UNKNOWN;
 	message_t send_buffer;
 	message_t receive_buffer;
 	bool is_escaped = false;
@@ -186,14 +187,14 @@ int main(int argc, char **argv)
 				{
 					calibration_has_been_done = true;
 				}
-				if((k == key_2 || k == key_5 || k == KEY_6) && calibration_has_been_done == false)
+				if((k == KEY_2 || k == KEY_5 || k == KEY_6) && calibration_has_been_done == false)
 				{
 					printf("Please execute calibration first (mode 3)\n");
 				}
 				else
 				{
 					retval = select_message(k, &send_buffer);
-				} 
+				}
 
 
 				if (retval < 0x0F)

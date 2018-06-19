@@ -5,7 +5,6 @@ void term_initio();
 void term_exitio();
 void term_puts(char *s);
 void term_putchar(char c);
-key	term_getchar_nb();
 int	term_getchar();
 
 typedef enum {
@@ -62,6 +61,8 @@ typedef enum {
   KEY_UNKNOWN
 } key;
 
-key parse_key(char *buf);
+uint8_t parse_key(char *buf);
+
+uint8_t	term_getchar_nb();
 
 #endif

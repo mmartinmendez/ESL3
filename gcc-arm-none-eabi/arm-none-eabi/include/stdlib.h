@@ -26,6 +26,10 @@
 #include <cygwin/stdlib.h>
 #endif
 
+#if __GNU_VISIBLE
+#include <xlocale.h>
+#endif
+
 _BEGIN_STD_C
 
 typedef struct 
@@ -136,6 +140,8 @@ _VOID	_EXFUN(qsort,(_PTR __base, size_t __nmemb, size_t __size, __compar_fn_t _c
 int	_EXFUN(rand,(_VOID));
 _PTR	_EXFUN_NOTHROW(realloc,(_PTR __r, size_t __size));
 #if __BSD_VISIBLE
+void	*reallocarray(void *, size_t, size_t) __result_use_check __alloc_size(2)
+	    __alloc_size(3);
 _PTR	_EXFUN(reallocf,(_PTR __r, size_t __size));
 #endif
 #if __BSD_VISIBLE || __XSI_VISIBLE >= 4
@@ -163,6 +169,21 @@ long	_EXFUN(strtol,(const char *__restrict __n, char **__restrict __end_PTR, int
 long	_EXFUN(_strtol_r,(struct _reent *,const char *__restrict __n, char **__restrict __end_PTR, int __base));
 unsigned long _EXFUN(strtoul,(const char *__restrict __n, char **__restrict __end_PTR, int __base));
 unsigned long _EXFUN(_strtoul_r,(struct _reent *,const char *__restrict __n, char **__restrict __end_PTR, int __base));
+
+#if __GNU_VISIBLE
+double	strtod_l (const char *__restrict, char **__restrict, locale_t);
+float	strtof_l (const char *__restrict, char **__restrict, locale_t);
+#ifdef _HAVE_LONG_DOUBLE
+extern long double strtold_l (const char *__restrict, char **__restrict,
+			      locale_t);
+#endif /* _HAVE_LONG_DOUBLE */
+long	strtol_l (const char *__restrict, char **__restrict, int, locale_t);
+unsigned long strtoul_l (const char *__restrict, char **__restrict, int,
+			 locale_t __loc);
+long long strtoll_l (const char *__restrict, char **__restrict, int, locale_t);
+unsigned long long strtoull_l (const char *__restrict, char **__restrict, int,
+			       locale_t __loc);
+#endif
 
 int	_EXFUN(system,(const char *__string));
 
