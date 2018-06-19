@@ -102,7 +102,7 @@ void send_p_values_update(message_t * send_buffer, uint8_t select)
 		send_message(send_buffer, message_len);
 	}
 }
-
+// Author: T.J Witte
 void send_calibration_data(message_t * send_buffer, int16_t phi, int16_t theta, 
 	int16_t psi, int16_t sp, int16_t sq, int16_t sr, int16_t sax, int16_t say, 
 	int16_t saz)

@@ -136,6 +136,7 @@ void manual_mode ()
 	}
 }
 
+// Author T.J Witte
 void calibration_mode ()
 {
 	if (!in_calibration_mode)
@@ -177,6 +178,7 @@ void calibration_mode ()
 	}
 }
 
+// Author T.J Witte
 void yaw_control_mode ()
 {
 	if (liftdata == -127) {
@@ -234,6 +236,7 @@ void yaw_control_mode ()
 	#endif
 }
 
+// Author T.J Witte
 void full_control_mode ()
 {
 	if (liftdata == -127) {
