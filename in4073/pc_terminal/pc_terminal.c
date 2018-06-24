@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include "pc_rs232.h"
 #include "pc_term.h"
@@ -17,8 +18,9 @@
  *----------------------------------------------------------------
  */
 
-// #define USE_GUI
+// Author: K Flere
 
+#define USE_GUI
 #ifdef USE_GUI
 uint8_t axxx[6]={0};
 int buttt[12]={0};
@@ -35,6 +37,7 @@ int main(int argc, char **argv)
 
 	// variables for sending/receiving messages
 	char c;
+	uint8_t k = KEY_UNKNOWN;
 	message_t send_buffer;
 	message_t receive_buffer;
 	bool is_escaped = false;
@@ -77,7 +80,7 @@ int main(int argc, char **argv)
   	// start GUI thread
   	pthread_t gui_thread;
 	//pthread_t update_gui_thread;
-  	
+
 	if (pthread_create (&gui_thread, NULL, run_gui, (void *) argv))
 	{
     	perror("ERROR creating gui_thread thread.");
@@ -92,18 +95,18 @@ int main(int argc, char **argv)
   		if (compare_time (&t_now, &t_joystick))
 		{
 			bool joystick_update = read_joystick(axis_small, button);
-			
+
 			//printf("axis 1 equals%i\n",axis_small[1]);
 
 			// only send new data when a change is detected
 			#ifdef USE_GUI
 			//axis_buttons axbut;
 			for(int i=1; i <= 6; i++)
-			{			
+			{
 				axxx[i] = axis_small[i];
-			} 
+			}
 			for(int j=1; j <= 12; j++)
-			{			
+			{
 				buttt[j] = button[j];
 			}
 /*
@@ -114,7 +117,7 @@ int main(int argc, char **argv)
 			void *run_gui(void *params)
 			{
 				printf("axis 1 equals%i",axis_small[1]);
-				//update_gui(axis_small, button);			
+				//update_gui(axis_small, button);
 				return 0;
 			}
 			#endif
@@ -129,7 +132,7 @@ int main(int argc, char **argv)
 				if ((y > 0) && (x > (127 - y)))
 				{
 					axis_totals[i] = 127; // overflow
-				} 
+				}
 				else if ((y < 0) && (x < (-127 - y)))
 				{
 				    axis_totals[i] = -127; // underflow
@@ -150,8 +153,8 @@ int main(int argc, char **argv)
 			if (joystick_update || offset_update)
 			{
 			#ifndef DONT_PRINT_JS_VALUES
-				printf("small values: %d | %d | %d | %d\n", 
-					axis_totals[0], axis_totals[1], 
+				printf("small values: %d | %d | %d | %d\n",
+					axis_totals[0], axis_totals[1],
 					axis_totals[2], axis_totals[3]);
 			#endif
 			}
@@ -159,41 +162,41 @@ int main(int argc, char **argv)
 			// fire button is pressed, go to panic mode
 			if ((button[0] > 0) && (mode_received != PANIC_MODE))
 			{
-				retval = select_message('1', &send_buffer);
+				retval = select_message(KEY_1, &send_buffer);
 				if (retval < 0x0F)
 				{
 					mode_requested = retval;
 					t_message_expect = add_time_millis(&t_now, 200);
-				}	
+				}
 			}
-			
+
 			offset_update = false;
 			t_joystick = add_time_millis(&t_now, 50);
 		}
-
-		// read chars from keyboard 
-		if ((c = term_getchar_nb()) != -1)
+		// Author: Mithun Martin Mendez
+		// Make the user return to safe mode before going to other mode
+		if ((k = term_getchar_nb()) != -1)
 		{
-			if(((c - '0') != 0 && retval != 0) && (c != '1') && ((c == '2') || (c == '3') || (c == '4') || (c == '5') || (c == '6') || (c == '7') || (c == '8')  || (c == '9')))
-			{ 
-				printf("Please firstly return to safe mode (mode 0)\n"); 
-			}		
+			if((k != KEY_0 && retval != 0) && (k != KEY_1) && ((k == KEY_2) || (k == KEY_3) || (k == KEY_4) || (k == KEY_5) || (k == KEY_6) || (k == KEY_7) || (k == KEY_8)  || (k == KEY_9)))
+			{
+				printf("Please firstly return to safe mode (mode 0)\n");
+			}
 			else
 			{
-				if((c - '0') == 3)
+				if(k == KEY_3) // Set calibration flag
 				{
 					calibration_has_been_done = true;
 				}
-				if(((c - '0') == 2 || (c - '0') == 5 || (c - '0') == 6) && calibration_has_been_done == false)
+				if((k == KEY_2 || k == KEY_5 || k == KEY_6) && calibration_has_been_done == false)
 				{
 					printf("Please execute calibration first (mode 3)\n");
 				}
 				else
 				{
-					retval = select_message(c, &send_buffer);
+					retval = select_message(k, &send_buffer);
 				}
 
-				
+
 				if (retval < 0x0F)
 				{
 					mode_requested = retval;
@@ -217,8 +220,8 @@ int main(int argc, char **argv)
 			if (c  == START_BYTE)
 			{
 				enable_drone_print = false;
-			} 
-			if (enable_drone_print) 
+			}
+			if (enable_drone_print)
 			{
 				putchar(c);
 			}
@@ -227,7 +230,7 @@ int main(int argc, char **argv)
 				enable_drone_print = true;
 			}
 
-			message_len = parse_message(c, &msg_index, 
+			message_len = parse_message(c, &msg_index,
 				&is_escaped, (uint8_t *) &receive_buffer, "PC");
 
 			if (message_len > 0)
@@ -237,12 +240,12 @@ int main(int argc, char **argv)
 				if (retval < 0x0F)
 				{
 					mode_received = retval;
-				} 	
+				}
 				else if (retval == 27)
 				{
 					demo_done = true;
 				}
-			}	
+			}
 		}
 
 		// This means we have set a mode, but not received the mode update yet
@@ -263,4 +266,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-

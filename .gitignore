@@ -1,6 +1,7 @@
 # Compiler / components folders
-./components
-./gcc-arm-none-eabi
+
+components
+gcc-arm-none-eabi
 in4073/_build/
 
 # Python binaries
@@ -64,3 +65,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+gcc-arm-none-eabi/

@@ -1,3 +1,6 @@
+// Author: K Flere
+// Visial interface showing joystick input and motor values
+
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,7 +64,7 @@ void    mon_delay_ms(unsigned int ms)
 
 #define JS_DEV	"/dev/input/js1"
 //reading joystick values
-void *jsfunc(void *para)
+void *jsfunc(void *para) //update values
 //void update_gui (int8_t axis[], int button[])
 {
 
@@ -135,7 +138,8 @@ void *jsfunc(void *para)
 		printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i \n",t , axis[0],axis[1],axis[2],axis[3],axis[4],axis[5],button[0] ,button[1] ,button[2] ,button[3] ,button[4] ,button[5] ,button[6] ,button[7] ,button[8] ,button[9] ,button[10] ,button[11] );
 
 */
-	if (button[0] != buttoncheck_1)
+
+	if (button[0] != buttoncheck_1)	//prevent rewrite when value is correct
 	{
 		if (button[0] == 0)
 		{
@@ -149,7 +153,7 @@ void *jsfunc(void *para)
 		}
 	}
 
-	if (button[1] != buttoncheck_2)
+	if (button[1] != buttoncheck_2) //prevent rewrite when value is correct
 	{
 		if (button[1] == 0)
 		{
@@ -163,7 +167,7 @@ void *jsfunc(void *para)
 		}
 	}
 
-	if (button[2] != buttoncheck_3)
+	if (button[2] != buttoncheck_3) //prevent rewrite when value is correct
 		{
 		if (button[2] == 0)
 			{
@@ -177,7 +181,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[3] != buttoncheck_4)
+	if (button[3] != buttoncheck_4) //prevent rewrite when value is correct
 		{
 		if (button[3] == 0)
 			{
@@ -191,7 +195,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[4] != buttoncheck_5)
+	if (button[4] != buttoncheck_5) //prevent rewrite when value is correct
 		{
 		if (button[4] == 0)
 			{
@@ -205,7 +209,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[5] != buttoncheck_6)
+	if (button[5] != buttoncheck_6) //prevent rewrite when value is correct
 		{
 		if (button[5] == 0)
 			{
@@ -219,7 +223,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[6] != buttoncheck_7)
+	if (button[6] != buttoncheck_7) //prevent rewrite when value is correct
 		{
 		if (button[6] == 0)
 			{
@@ -233,7 +237,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[7] != buttoncheck_8)
+	if (button[7] != buttoncheck_8) //prevent rewrite when value is correct
 		{
 		if (button[7] == 0)
 			{
@@ -247,7 +251,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[8] != buttoncheck_9)
+	if (button[8] != buttoncheck_9) //prevent rewrite when value is correct
 		{
 		if (button[8] == 0)
 			{
@@ -261,7 +265,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[9] != buttoncheck_10)
+	if (button[9] != buttoncheck_10) //prevent rewrite when value is correct
 		{
 		if (button[9] == 0)
 			{
@@ -275,7 +279,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[10] != buttoncheck_11)
+	if (button[10] != buttoncheck_11) //prevent rewrite when value is correct
 		{
 		if (button[10] == 0)
 			{
@@ -289,7 +293,7 @@ void *jsfunc(void *para)
 			}
 		}
 
-	if (button[11] != buttoncheck_12)
+	if (button[11] != buttoncheck_12) //prevent rewrite when value is correct
 		{
 		if (button[11] == 0)
 			{
@@ -375,7 +379,7 @@ static void destroy(GtkWidget *widget, gpointer data)
 	}
 
 
-void *run_gui(void *para)
+void *run_gui(void *para) // setup layout
 {
     	GtkWidget *window;
 	GtkWidget *button;

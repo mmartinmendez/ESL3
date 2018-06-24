@@ -103,6 +103,7 @@ void panic_mode (bool second_run)
 	}
 }
 
+// Author: Mithun Martin Mendez
 void manual_mode ()
 {
 	int16_t updated[4];
@@ -136,6 +137,7 @@ void manual_mode ()
 	}
 }
 
+// Author T.J Witte
 void calibration_mode ()
 {
 	if (!in_calibration_mode)
@@ -177,6 +179,7 @@ void calibration_mode ()
 	}
 }
 
+// Author T.J Witte
 void yaw_control_mode ()
 {
 	if (liftdata == -127) {
@@ -234,6 +237,7 @@ void yaw_control_mode ()
 	#endif
 }
 
+// Author T.J Witte
 void full_control_mode ()
 {
 	if (liftdata == -127) {
@@ -260,19 +264,19 @@ void full_control_mode ()
     // cap Esp at +-2000
     if (real_sr > CAP_VALUE_YAW)
     {
-    	real_sr = CAP_VALUE_YAW;	
-    } 
+    	real_sr = CAP_VALUE_YAW;
+    }
     else if (real_sr < -CAP_VALUE_YAW)
     {
     	real_sr = -CAP_VALUE_YAW;
     }
-    #endif 
+    #endif
 
     // create setpoints
 	int lift_setpoint  = (liftdata + 127 *2) * 2;
     int rate_setpoint = - yawdata * 20; // was 20
-    int roll_s = rolldata * 50; 
-    int pitch_s = - pitchdata * 50; 
+    int roll_s = rolldata * 50;
+    int pitch_s = - pitchdata * 50;
 
     // calculate roll/pitch/yaw thorque
 	int K_s_pitch = p1 * (pitch_s + real_theta) / 2 - p2 * real_sq;
@@ -297,7 +301,7 @@ void full_control_mode ()
 
 	#if 0
 	nrf_gpio_pin_set(LA_PIN_2); // logic analyzer
-	
+
 	static int debug_print_counter = 0; //TODO remove this later
 
 	if (second_run)
@@ -308,7 +312,7 @@ void full_control_mode ()
 	if (debug_print_counter++%4 == 0)
 	{
 		printf("Motor values: %3d %3d %3d %3d |",ae[0],ae[1],ae[2],ae[3]);
-		printf("K_s_roll: %6d | K_s_pitch: %6d | Eps: %6d | ", 
+		printf("K_s_roll: %6d | K_s_pitch: %6d | Eps: %6d | ",
 			K_s_roll, K_s_pitch, Eps);
 		printf("real_phi: %6d | real_theta: %6d | ", real_phi, real_theta);
 		printf("real_sp: %6d | real_sq: %6d | ", real_sp, real_sq);
